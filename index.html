@@ -14,11 +14,23 @@
   stroke-dasharray: 440;
   stroke-dashoffset: 440;
 }
-.empty-state { text-align: center; padding: 40px 20px; color: var(--text-3); font-size: 14px; }
-.loading { text-align: center; padding: 40px 20px; color: var(--text-3); font-size: 14px; }
+.empty-state {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px;
+  padding: 20px;
+  background: var(--bg2);
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-3);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.empty-state:active { background: var(--bg3); }
 </style>
 </head>
 <body>
+<div class="app-wrap">
 <script src="supabase.js"></script>
 
 <div class="seg-wrap">
@@ -252,10 +264,16 @@ function renderList(type) {
   const items = getVisibleItems(type);
   const checks = allChecks[type] || [];
   const listEl = document.getElementById(type + '-list');
+  const addBtn = document.querySelector(`#content-${type} .sec-action`);
 
   if (items.length === 0) {
-    listEl.innerHTML = `<div class="empty-state">목표를 추가해보세요 ✍️</div>`;
+    if (addBtn) addBtn.style.display = 'none';
+    listEl.innerHTML = `<div class="empty-state" onclick="openSheet('${type}')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      목표를 추가해보세요
+    </div>`;
   } else {
+    if (addBtn) addBtn.style.display = '';
     listEl.innerHTML = items.map(item => {
       const done = checks.includes(item.id);
       return `
@@ -475,5 +493,6 @@ document.getElementById('fab-btn').addEventListener('click', () => openSheet(cur
 loadData('daily');
 loadData('monthly');
 </script>
+</div>
 </body>
 </html>
