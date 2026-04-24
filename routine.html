@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>루틴</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<style>
+.routine-group { margin-bottom: 24px; }
+.routine-group-label { font-size: 13px; font-weight: 600; color: var(--text-3); margin-bottom: 10px; padding: 0 2px; }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-3); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="seg-wrap">
+  <div class="seg-tab active" id="tab-daily" onclick="switchTab('daily')">일간</div>
+  <div class="seg-tab" id="tab-monthly" onclick="switchTab('monthly')">월간</div>
+</div>
+
+<!-- Daily -->
+<div class="content" id="content-daily">
+  <div class="page-header" style="margin-bottom:24px;">
+    <div class="page-title">루틴</div>
+  </div>
+  <div id="daily-routine-list"></div>
+</div>
+
+<!-- Monthly -->
+<div class="content" id="content-monthly" style="display:none;">
+  <div class="page-header" style="margin-bottom:24px;">
+    <div class="page-title">루틴</div>
+  </div>
+  <div id="monthly-routine-list"></div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <a class="tab-item" href="index.html">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 10h16M4 14h10" stroke="#636366" stroke-width="2" stroke-linecap="round"/></svg>
+    <span class="tab-label">목표</span>
+  </a>
+  <a class="tab-item" href="records.html">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#636366" stroke-width="2"/><polyline points="12 7 12 12 15 15" stroke="#636366" stroke-width="2" stroke-linecap="round"/></svg>
+    <span class="tab-label">기록</span>
+  </a>
+  <a class="tab-item" href="routine.html">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none"><path d="M4 20V14M9 20V10M14 20V14M19 20V4" stroke="#FF8C00" stroke-width="2" stroke-linecap="round"/></svg>
+    <span class="tab-label active">루틴</span>
+  </a>
+  <a class="tab-item" href="settings.html">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#636366" stroke-width="2"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="#636366" stroke-width="2" stroke-linecap="round"/></svg>
+    <span class="tab-label">설정</span>
+  </a>
+</div>
+
+<!-- Sheet: 수정 -->
+<div class="sheet-overlay" id="sheet-edit">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="edit-title">목표 수정하기</div>
+    <div class="form-label">목표 설정</div>
+    <div class="input-wrap">
+      <input class="form-input" id="edit-input" type="text">
+      <div class="input-clear show" onclick="document.getElementById('edit-input').value=''"></div>
+    </div>
+    <div class="form-label">루틴 설정</div>
+    <div class="chip-row" id="edit-chips"></div>
+    <div class="sheet-btns">
+      <button class="btn btn-cancel" onclick="closeSheet()">취소</button>
+      <button class="btn btn-save" onclick="saveEdit()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function load(key) { return JSON.parse(localStorage.getItem(key) || '[]'); }
+function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+const DAYS_KO = {1:'월요일',2:'화요일',3:'수요일',4:'목요일',5:'금요일',6:'토요일',0:'일요일'};
+const DOW_MAP = {'월':1,'화':2,'수':3,'목':4,'금':5,'토':6,'일':0};
+
+let currentTab = 'daily';
+let editingId = null;
+let editingType = null;
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-daily').classList.toggle('active', tab==='daily');
+  document.getElementById('tab-monthly').classList.toggle('active', tab==='monthly');
+  document.getElementById('content-daily').style.display = tab==='daily' ? 'block' : 'none';
+  document.getElementById('content-monthly').style.display = tab==='monthly' ? 'block' : 'none';
+}
+
+function renderRoutine(type) {
+  const items = load(type + '-items');
+  // 없음 제외 루틴 항목만
+  const routineItems = items.filter(i => i.routine !== '없음');
+  const listEl = document.getElementById(type + '-routine-list');
+
+  if (routineItems.length === 0) {
+    listEl.innerHTML = `<div class="empty-state">루틴 목표가 없어요<br>목표 추가 시 루틴을 설정해보세요 🔁</div>`;
+    return;
+  }
+
+  // 그룹핑
+  const groups = {};
+  routineItems.forEach(item => {
+    const routines = Array.isArray(item.routine) ? item.routine : [item.routine];
+    routines.forEach(r => {
+      if (!groups[r]) groups[r] = [];
+      groups[r].push(item);
+    });
+  });
+
+  // 순서 정렬
+  const order = type === 'daily'
+    ? ['매일','월','화','수','목','금','토','일']
+    : ['매월','1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+  let html = '';
+  order.forEach(key => {
+    if (!groups[key]) return;
+    const label = type === 'daily' && DOW_MAP[key] !== undefined ? DAYS_KO[DOW_MAP[key]] : key;
+    html += `<div class="routine-group">
+      <div class="routine-group-label">${label}</div>
+      <div class="todo-list">
+        ${groups[key].map(item => `
+          <div class="todo-item" data-id="${item.id}" data-type="${type}">
+            <span class="todo-text" style="flex:1;">${item.text}</span>
+            <div class="more-btn" onclick="toggleCtx(this)">
+              <div class="more-dots"><span></span><span></span><span></span></div>
+              <div class="ctx-menu">
+                <div class="ctx-item" onclick="openEditSheet(this)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>수정
+                </div>
+                <div class="ctx-item delete" onclick="deleteItem(this)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>삭제
+                </div>
+              </div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  });
+  listEl.innerHTML = html;
+}
+
+function toggleCtx(btn) {
+  document.querySelectorAll('.ctx-menu.open').forEach(m => {
+    if (m !== btn.querySelector('.ctx-menu')) m.classList.remove('open');
+  });
+  btn.querySelector('.ctx-menu').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.more-btn')) document.querySelectorAll('.ctx-menu.open').forEach(m => m.classList.remove('open'));
+});
+
+function deleteItem(ctxItem) {
+  const todoItem = ctxItem.closest('.todo-item');
+  const id = todoItem.dataset.id;
+  const type = todoItem.dataset.type;
+  const items = load(type + '-items');
+  save(type + '-items', items.filter(i => i.id !== id));
+  renderRoutine(type);
+  ctxItem.closest('.ctx-menu').classList.remove('open');
+}
+
+function openEditSheet(ctxItem) {
+  const todoItem = ctxItem.closest('.todo-item');
+  editingId = todoItem.dataset.id;
+  editingType = todoItem.dataset.type;
+  ctxItem.closest('.ctx-menu').classList.remove('open');
+  const items = load(editingType + '-items');
+  const item = items.find(i => i.id === editingId);
+  if (!item) return;
+  document.getElementById('edit-title').textContent = editingType === 'daily' ? '일간 목표 수정하기' : '월간 목표 수정하기';
+  document.getElementById('edit-input').value = item.text;
+  const chipsEl = document.getElementById('edit-chips');
+  const isSelected = (v) => Array.isArray(item.routine) ? item.routine.includes(v) : item.routine === v;
+  if (editingType === 'daily') {
+    chipsEl.innerHTML = ['없음','매일','월','화','수','목','금','토','일'].map(v =>
+      `<button class="chip ${v.length===1?'chip-sm':''} ${isSelected(v) ? 'selected' : ''}" onclick="selectEditChip(this,'${v}','daily')">${v}</button>`
+    ).join('');
+  } else {
+    chipsEl.innerHTML = ['없음','매월','1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'].map(v =>
+      `<button class="chip ${item.routine === v ? 'selected' : ''}" onclick="selectEditChip(this,'${v}','monthly')">${v}</button>`
+    ).join('');
+  }
+  document.getElementById('sheet-edit').classList.add('open');
+}
+
+function selectEditChip(chip, val, type) {
+  const chips = chip.closest('.chip-row').querySelectorAll('.chip');
+  if (type === 'daily') {
+    if (['없음','매일'].includes(val)) { chips.forEach(c => c.classList.remove('selected')); chip.classList.add('selected'); }
+    else { chips[0].classList.remove('selected'); chips[1].classList.remove('selected'); chip.classList.toggle('selected'); }
+  } else {
+    chips.forEach(c => c.classList.remove('selected')); chip.classList.add('selected');
+  }
+}
+
+function saveEdit() {
+  const text = document.getElementById('edit-input').value.trim();
+  if (!text) return;
+  const chips = document.querySelectorAll('#edit-chips .chip.selected');
+  let routine;
+  if (editingType === 'daily') {
+    const vals = [...chips].map(c => c.textContent);
+    routine = vals.length === 1 ? vals[0] : vals;
+  } else {
+    routine = chips[0]?.textContent || '없음';
+  }
+  const items = load(editingType + '-items');
+  const idx = items.findIndex(i => i.id === editingId);
+  if (idx !== -1) { items[idx].text = text; items[idx].routine = routine; }
+  save(editingType + '-items', items);
+  closeSheet();
+  renderRoutine(editingType);
+}
+
+function closeSheet() {
+  document.getElementById('sheet-edit').classList.remove('open');
+}
+document.getElementById('sheet-edit').addEventListener('click', e => {
+  if (e.target === document.getElementById('sheet-edit')) closeSheet();
+});
+
+renderRoutine('daily');
+renderRoutine('monthly');
+</script>
+</body>
+</html>
