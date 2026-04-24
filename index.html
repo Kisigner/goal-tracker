@@ -14,15 +14,12 @@
   stroke-dasharray: 440;
   stroke-dashoffset: 440;
 }
-.empty-state {
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--text-3);
-  font-size: 14px;
-}
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-3); font-size: 14px; }
+.loading { text-align: center; padding: 40px 20px; color: var(--text-3); font-size: 14px; }
 </style>
 </head>
 <body>
+<script src="supabase.js"></script>
 
 <div class="seg-wrap">
   <div class="seg-tab active" id="tab-daily" onclick="switchTab('daily')">일간</div>
@@ -53,7 +50,7 @@
     <span class="sec-title">To-Do-List</span>
     <span class="sec-action" onclick="openSheet('daily')">+ 추가</span>
   </div>
-  <div class="todo-list" id="daily-list"></div>
+  <div class="todo-list" id="daily-list"><div class="loading">불러오는 중...</div></div>
 </div>
 
 <!-- Monthly -->
@@ -80,7 +77,7 @@
     <span class="sec-title">To-Do-List</span>
     <span class="sec-action" onclick="openSheet('monthly')">+ 추가</span>
   </div>
-  <div class="todo-list" id="monthly-list"></div>
+  <div class="todo-list" id="monthly-list"><div class="loading">불러오는 중...</div></div>
 </div>
 
 <!-- Tab Bar -->
@@ -188,29 +185,26 @@
 </div>
 
 <script>
-// ── 날짜 헬퍼 ──────────────────────────────────────────
 const DAYS = ['일','월','화','수','목','금','토'];
 const today = new Date();
 const todayKey = `${today.getFullYear()}-${today.getMonth()+1}-${today.getDate()}`;
-const todayDow = DAYS[today.getDay()]; // 월,화,수...
+const monthKey = `${today.getFullYear()}-${today.getMonth()+1}`;
 
-function formatDateKo(d) {
-  return `${d.getMonth()+1}월 ${d.getDate()}일, ${['일','월','화','수','목','금','토'][d.getDay()]}요일`;
-}
-function formatMonthKo(d) {
-  return `${d.getMonth()+1}월, ${d.getFullYear()}년`;
-}
-
-// ── localStorage 헬퍼 ──────────────────────────────────
-function load(key) { return JSON.parse(localStorage.getItem(key) || '[]'); }
-function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
-
-// ── 오늘 체크 상태 저장 키 ──────────────────────────────
-const CHECK_KEY_DAILY   = `checks-daily-${todayKey}`;
-const CHECK_KEY_MONTHLY = `checks-monthly-${today.getFullYear()}-${today.getMonth()+1}`;
-
-// ── 탭 전환 ──────────────────────────────────────────
 let currentTab = 'daily';
+let dailySelectedChips = [];
+let monthlySelectedChip = null;
+let editingId = null;
+let editingType = null;
+let allItems = { daily: [], monthly: [] };
+let allChecks = { daily: [], monthly: [] };
+
+// ── 날짜 표시 ──────────────────────────────────────
+document.getElementById('daily-date').textContent =
+  `${today.getMonth()+1}월 ${today.getDate()}일, ${DAYS[today.getDay()]}요일`;
+document.getElementById('monthly-date').textContent =
+  `${today.getMonth()+1}월, ${today.getFullYear()}년`;
+
+// ── 탭 전환 ──────────────────────────────────────
 function switchTab(tab) {
   currentTab = tab;
   document.getElementById('tab-daily').classList.toggle('active', tab==='daily');
@@ -219,42 +213,44 @@ function switchTab(tab) {
   document.getElementById('content-monthly').style.display = tab==='monthly' ? 'block' : 'none';
 }
 
-// ── 렌더링 ──────────────────────────────────────────
+// ── 오늘 보여야 할 항목 필터 ──────────────────────
 function getVisibleItems(type) {
-  const allItems = load(type + '-items'); // [{id, text, routine, createdAt}]
+  const items = allItems[type] || [];
+  const dow = today.getDay();
+  const dowMap = {'월':1,'화':2,'수':3,'목':4,'금':5,'토':6,'일':0};
+  const thisMonth = today.getMonth() + 1;
+  const thisYear = today.getFullYear();
+
   if (type === 'daily') {
-    // 오늘 보여야 할 항목: routine이 없음이면 생성일이 오늘인 것만, 나머지는 루틴 조건
-    return allItems.filter(item => {
-      if (item.routine === '없음') return item.createdDate === todayKey;
-      if (item.routine === '매일') return true;
-      // 특정 요일
-      const dowMap = {'월':1,'화':2,'수':3,'목':4,'금':5,'토':6,'일':0};
-      if (dowMap[item.routine] !== undefined) return today.getDay() === dowMap[item.routine];
-      // 복수 요일 (배열)
-      if (Array.isArray(item.routine)) {
-        return item.routine.some(r => dowMap[r] !== undefined && today.getDay() === dowMap[r]);
-      }
+    return items.filter(item => {
+      const r = item.routine;
+      if (r === '없음') return item.created_date === todayKey;
+      if (r === '매일') return true;
+      if (dowMap[r] !== undefined) return dow === dowMap[r];
+      // 복수 요일 (JSON 배열로 저장된 경우)
+      try {
+        const arr = JSON.parse(r);
+        if (Array.isArray(arr)) return arr.some(v => dowMap[v] !== undefined && dow === dowMap[v]);
+      } catch(e) {}
       return false;
     });
   } else {
-    // 월간: routine이 없음이면 생성월이 이번달, 매월이면 항상, 특정달이면 해당월
-    const thisMonth = today.getMonth() + 1;
-    const thisYear = today.getFullYear();
-    return allItems.filter(item => {
-      if (item.routine === '없음') {
-        const [y, m] = (item.createdDate || '').split('-');
-        return parseInt(y) === thisYear && parseInt(m) === thisMonth;
+    return items.filter(item => {
+      const r = item.routine;
+      if (r === '없음') {
+        const [y,m] = (item.created_date||'').split('-');
+        return parseInt(y)===thisYear && parseInt(m)===thisMonth;
       }
-      if (item.routine === '매월') return true;
-      const monthNum = parseInt(item.routine);
-      return monthNum === thisMonth;
+      if (r === '매월') return true;
+      return parseInt(r) === thisMonth;
     });
   }
 }
 
+// ── 렌더링 ──────────────────────────────────────
 function renderList(type) {
   const items = getVisibleItems(type);
-  const checks = load(type === 'daily' ? CHECK_KEY_DAILY : CHECK_KEY_MONTHLY);
+  const checks = allChecks[type] || [];
   const listEl = document.getElementById(type + '-list');
 
   if (items.length === 0) {
@@ -264,8 +260,8 @@ function renderList(type) {
       const done = checks.includes(item.id);
       return `
       <div class="todo-item" data-id="${item.id}" data-type="${type}">
-        <div class="checkbox ${done ? 'checked' : ''}" onclick="toggleCheck(this)"></div>
-        <span class="todo-text ${done ? 'done' : ''}">${item.text}</span>
+        <div class="checkbox ${done?'checked':''}" onclick="toggleCheck(this)"></div>
+        <span class="todo-text ${done?'done':''}">${item.text}</span>
         <div class="more-btn" onclick="toggleCtx(this)">
           <div class="more-dots"><span></span><span></span><span></span></div>
           <div class="ctx-menu">
@@ -285,62 +281,66 @@ function renderList(type) {
 
 function updateRing(type) {
   const items = getVisibleItems(type);
-  const checkKey = type === 'daily' ? CHECK_KEY_DAILY : CHECK_KEY_MONTHLY;
-  const checks = load(checkKey);
+  const checks = allChecks[type] || [];
   const total = items.length;
   const done = items.filter(i => checks.includes(i.id)).length;
   const pct = total === 0 ? 0 : Math.round(done / total * 100);
-  const circumference = 440;
-  const offset = circumference - (pct / 100 * circumference);
+  const offset = 440 - (pct / 100 * 440);
 
-  document.getElementById(type + '-pct').innerHTML = `${pct}<span>%</span>`;
-  document.getElementById(type + '-done').textContent = done;
-  document.getElementById(type + '-total').textContent = total;
-  document.getElementById(type + '-ring').style.strokeDashoffset = offset;
+  document.getElementById(type+'-pct').innerHTML = `${pct}<span>%</span>`;
+  document.getElementById(type+'-done').textContent = done;
+  document.getElementById(type+'-total').textContent = total;
+  document.getElementById(type+'-ring').style.strokeDashoffset = offset;
 
-  // streak chip
-  const chip = document.getElementById(type + '-streak');
+  const chip = document.getElementById(type+'-streak');
   chip.style.display = total === 0 ? 'none' : 'flex';
-  if (pct === 100) chip.textContent = '🎉 모두 완료!';
-  else if (pct >= 50) chip.textContent = '🔥 잘 하고 있어요!';
-  else chip.textContent = '💪 조금만 더!';
+  chip.textContent = pct===100 ? '🎉 모두 완료!' : pct>=50 ? '🔥 잘 하고 있어요!' : '💪 조금만 더!';
 }
 
-// ── 체크 토글 ──────────────────────────────────────────
-function toggleCheck(el) {
+// ── 데이터 불러오기 ──────────────────────────────
+async function loadData(type) {
+  const checkDate = type === 'daily' ? todayKey : monthKey;
+  const [items, checks] = await Promise.all([
+    sb.get(`/items?type=eq.${type}&order=created_at.asc`),
+    sb.get(`/checks?check_date=eq.${checkDate}&select=item_id`)
+  ]);
+  allItems[type] = Array.isArray(items) ? items : [];
+  allChecks[type] = Array.isArray(checks) ? checks.map(c => c.item_id) : [];
+  renderList(type);
+}
+
+// ── 체크 토글 ──────────────────────────────────
+async function toggleCheck(el) {
   const item = el.closest('.todo-item');
   const id = item.dataset.id;
   const type = item.dataset.type;
-  const checkKey = type === 'daily' ? CHECK_KEY_DAILY : CHECK_KEY_MONTHLY;
-  const checks = load(checkKey);
+  const checkDate = type === 'daily' ? todayKey : monthKey;
+  const checks = allChecks[type];
   const idx = checks.indexOf(id);
-  if (idx === -1) checks.push(id);
-  else checks.splice(idx, 1);
-  save(checkKey, checks);
+
+  if (idx === -1) {
+    await sb.post('/checks', { item_id: id, check_date: checkDate });
+    checks.push(id);
+  } else {
+    await sb.del(`/checks?item_id=eq.${id}&check_date=eq.${checkDate}`);
+    checks.splice(idx, 1);
+  }
   renderList(type);
-
-  // 기록 저장
-  saveRecord(type, todayKey);
 }
 
-// ── 기록 저장 ──────────────────────────────────────────
-function saveRecord(type, dateKey) {
-  const items = getVisibleItems(type);
-  const checkKey = type === 'daily' ? CHECK_KEY_DAILY : CHECK_KEY_MONTHLY;
-  const checks = load(checkKey);
-  const total = items.length;
-  const done = items.filter(i => checks.includes(i.id)).length;
-  const pct = total === 0 ? 0 : Math.round(done / total * 100);
-
-  const records = load(type + '-records');
-  const existing = records.findIndex(r => r.date === dateKey);
-  const snapshot = items.map(i => ({ id: i.id, text: i.text, done: checks.includes(i.id) }));
-  if (existing !== -1) records[existing] = { date: dateKey, pct, items: snapshot };
-  else records.unshift({ date: dateKey, pct, items: snapshot });
-  save(type + '-records', records);
+// ── 삭제 ──────────────────────────────────────
+async function deleteItem(ctxItem) {
+  const todoItem = ctxItem.closest('.todo-item');
+  const id = todoItem.dataset.id;
+  const type = todoItem.dataset.type;
+  await sb.del(`/items?id=eq.${id}`);
+  allItems[type] = allItems[type].filter(i => i.id !== id);
+  allChecks[type] = allChecks[type].filter(c => c !== id);
+  renderList(type);
+  ctxItem.closest('.ctx-menu').classList.remove('open');
 }
 
-// ── 컨텍스트 메뉴 ──────────────────────────────────────
+// ── 컨텍스트 메뉴 ──────────────────────────────
 function toggleCtx(btn) {
   document.querySelectorAll('.ctx-menu.open').forEach(m => {
     if (m !== btn.querySelector('.ctx-menu')) m.classList.remove('open');
@@ -348,33 +348,14 @@ function toggleCtx(btn) {
   btn.querySelector('.ctx-menu').classList.toggle('open');
 }
 document.addEventListener('click', e => {
-  if (!e.target.closest('.more-btn')) {
+  if (!e.target.closest('.more-btn'))
     document.querySelectorAll('.ctx-menu.open').forEach(m => m.classList.remove('open'));
-  }
 });
 
-// ── 삭제 ──────────────────────────────────────────────
-function deleteItem(ctxItem) {
-  const todoItem = ctxItem.closest('.todo-item');
-  const id = todoItem.dataset.id;
-  const type = todoItem.dataset.type;
-  const items = load(type + '-items');
-  save(type + '-items', items.filter(i => i.id !== id));
-  renderList(type);
-  ctxItem.closest('.ctx-menu').classList.remove('open');
-}
-
-// ── 시트 열기/닫기 ────────────────────────────────────
-let dailySelectedChips = [];
-let monthlySelectedChip = null;
-let editingId = null;
-let editingType = null;
-
-function openSheet(type) {
-  document.getElementById('sheet-' + type).classList.add('open');
-}
+// ── 시트 ──────────────────────────────────────
+function openSheet(type) { document.getElementById('sheet-'+type).classList.add('open'); }
 function closeSheet(type) {
-  document.getElementById('sheet-' + type).classList.remove('open');
+  document.getElementById('sheet-'+type).classList.remove('open');
   if (type === 'daily') {
     document.getElementById('daily-input').value = '';
     dailySelectedChips = [];
@@ -388,18 +369,14 @@ function closeSheet(type) {
     document.getElementById('monthly-save').disabled = true;
   }
 }
-
-document.querySelectorAll('.sheet-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) closeSheet(overlay.id.replace('sheet-', ''));
-  });
+document.querySelectorAll('.sheet-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target===o) closeSheet(o.id.replace('sheet-','')); });
 });
 
-// ── 루틴 칩 ──────────────────────────────────────────
+// ── 칩 선택 ──────────────────────────────────
 function selectDailyChip(chip, val) {
   const chips = document.querySelectorAll('#daily-chips .chip');
-  const exclusive = ['없음', '매일'];
-  if (exclusive.includes(val)) {
+  if (['없음','매일'].includes(val)) {
     chips.forEach(c => c.classList.remove('selected'));
     chip.classList.add('selected');
     dailySelectedChips = [val];
@@ -407,7 +384,7 @@ function selectDailyChip(chip, val) {
     chips[0].classList.remove('selected');
     chips[1].classList.remove('selected');
     chip.classList.toggle('selected');
-    dailySelectedChips = [...chips].filter((c,i) => i > 1 && c.classList.contains('selected')).map(c => c.textContent);
+    dailySelectedChips = [...chips].filter((c,i)=>i>1&&c.classList.contains('selected')).map(c=>c.textContent);
   }
   checkSave('daily');
 }
@@ -417,124 +394,86 @@ function selectMonthlyChip(chip) {
   monthlySelectedChip = chip.textContent;
   checkSave('monthly');
 }
-
-// ── 저장 버튼 활성화 ──────────────────────────────────
 function checkSave(type) {
   if (type === 'daily') {
-    const hasText = document.getElementById('daily-input').value.trim().length > 0;
-    const hasChip = dailySelectedChips.length > 0;
-    document.getElementById('daily-save').disabled = !(hasText && hasChip);
-    document.getElementById('daily-clear').classList.toggle('show', document.getElementById('daily-input').value.length > 0);
+    document.getElementById('daily-save').disabled = !(document.getElementById('daily-input').value.trim() && dailySelectedChips.length);
+    document.getElementById('daily-clear').classList.toggle('show', !!document.getElementById('daily-input').value);
   } else {
-    const hasText = document.getElementById('monthly-input').value.trim().length > 0;
-    const hasChip = monthlySelectedChip !== null;
-    document.getElementById('monthly-save').disabled = !(hasText && hasChip);
-    document.getElementById('monthly-clear').classList.toggle('show', document.getElementById('monthly-input').value.length > 0);
+    document.getElementById('monthly-save').disabled = !(document.getElementById('monthly-input').value.trim() && monthlySelectedChip);
+    document.getElementById('monthly-clear').classList.toggle('show', !!document.getElementById('monthly-input').value);
   }
 }
-function clearInput(type) {
-  document.getElementById(type + '-input').value = '';
-  checkSave(type);
-}
+function clearInput(type) { document.getElementById(type+'-input').value=''; checkSave(type); }
 
-// ── 저장 ──────────────────────────────────────────────
-function saveItem(type) {
-  const text = document.getElementById(type + '-input').value.trim();
+// ── 저장 ──────────────────────────────────────
+async function saveItem(type) {
+  const text = document.getElementById(type+'-input').value.trim();
   const routine = type === 'daily'
-    ? (dailySelectedChips.length === 1 ? dailySelectedChips[0] : dailySelectedChips)
+    ? (dailySelectedChips.length===1 ? dailySelectedChips[0] : JSON.stringify(dailySelectedChips))
     : monthlySelectedChip;
-  const items = load(type + '-items');
-  items.push({
-    id: Date.now().toString(),
-    text,
-    routine,
-    createdDate: todayKey
-  });
-  save(type + '-items', items);
+  const id = Date.now().toString();
+  const res = await sb.post('/items', { id, type, text, routine, created_date: todayKey });
+  if (Array.isArray(res) && res[0]) allItems[type].push(res[0]);
+  else allItems[type].push({ id, type, text, routine, created_date: todayKey });
   closeSheet(type);
   renderList(type);
 }
 
-// ── 수정 시트 ──────────────────────────────────────────
+// ── 수정 ──────────────────────────────────────
 function openEditSheet(ctxItem) {
   const todoItem = ctxItem.closest('.todo-item');
   editingId = todoItem.dataset.id;
   editingType = todoItem.dataset.type;
   ctxItem.closest('.ctx-menu').classList.remove('open');
-
-  const items = load(editingType + '-items');
-  const item = items.find(i => i.id === editingId);
+  const item = allItems[editingType].find(i=>i.id===editingId);
   if (!item) return;
-
-  document.getElementById('edit-title').textContent = editingType === 'daily' ? '일간 목표 수정하기' : '월간 목표 수정하기';
+  document.getElementById('edit-title').textContent = editingType==='daily'?'일간 목표 수정하기':'월간 목표 수정하기';
   document.getElementById('edit-input').value = item.text;
-
+  const isSelected = v => {
+    try { const arr=JSON.parse(item.routine); if(Array.isArray(arr)) return arr.includes(v); } catch(e){}
+    return item.routine===v;
+  };
   const chipsEl = document.getElementById('edit-chips');
-  if (editingType === 'daily') {
-    chipsEl.innerHTML = ['없음','매일','월','화','수','목','금','토','일'].map(v =>
-      `<button class="chip ${v.length===1?'chip-sm':''} ${isChipSelected(item.routine, v) ? 'selected' : ''}" onclick="selectEditChip(this,'${v}','daily')">${v}</button>`
+  if (editingType==='daily') {
+    chipsEl.innerHTML = ['없음','매일','월','화','수','목','금','토','일'].map(v=>
+      `<button class="chip ${v.length===1?'chip-sm':''} ${isSelected(v)?'selected':''}" onclick="selEditChip(this,'${v}','daily')">${v}</button>`
     ).join('');
   } else {
-    chipsEl.innerHTML = ['없음','매월','1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'].map(v =>
-      `<button class="chip ${item.routine === v ? 'selected' : ''}" onclick="selectEditChip(this,'${v}','monthly')">${v}</button>`
+    chipsEl.innerHTML = ['없음','매월','1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'].map(v=>
+      `<button class="chip ${isSelected(v)?'selected':''}" onclick="selEditChip(this,'${v}','monthly')">${v}</button>`
     ).join('');
   }
   document.getElementById('sheet-edit').classList.add('open');
 }
-
-function isChipSelected(routine, val) {
-  if (Array.isArray(routine)) return routine.includes(val);
-  return routine === val;
+function selEditChip(chip, val, type) {
+  const chips = chip.closest('.chip-row').querySelectorAll('.chip');
+  if (type==='daily') {
+    if (['없음','매일'].includes(val)) { chips.forEach(c=>c.classList.remove('selected')); chip.classList.add('selected'); }
+    else { chips[0].classList.remove('selected'); chips[1].classList.remove('selected'); chip.classList.toggle('selected'); }
+  } else { chips.forEach(c=>c.classList.remove('selected')); chip.classList.add('selected'); }
 }
-
-function selectEditChip(chip, val, type) {
-  const row = chip.closest('.chip-row');
-  const chips = row.querySelectorAll('.chip');
-  if (type === 'daily') {
-    const exclusive = ['없음','매일'];
-    if (exclusive.includes(val)) {
-      chips.forEach(c => c.classList.remove('selected'));
-      chip.classList.add('selected');
-    } else {
-      chips[0].classList.remove('selected');
-      chips[1].classList.remove('selected');
-      chip.classList.toggle('selected');
-    }
-  } else {
-    chips.forEach(c => c.classList.remove('selected'));
-    chip.classList.add('selected');
-  }
-}
-
-function saveEdit() {
+async function saveEdit() {
   const text = document.getElementById('edit-input').value.trim();
   if (!text) return;
-  const chips = document.querySelectorAll('#edit-chips .chip.selected');
+  const chips = [...document.querySelectorAll('#edit-chips .chip.selected')];
   let routine;
-  if (editingType === 'daily') {
-    const vals = [...chips].map(c => c.textContent);
-    routine = vals.length === 1 ? vals[0] : vals;
-  } else {
-    routine = chips[0]?.textContent || '없음';
-  }
-  const items = load(editingType + '-items');
-  const idx = items.findIndex(i => i.id === editingId);
-  if (idx !== -1) { items[idx].text = text; items[idx].routine = routine; }
-  save(editingType + '-items', items);
+  if (editingType==='daily') {
+    const vals = chips.map(c=>c.textContent);
+    routine = vals.length===1 ? vals[0] : JSON.stringify(vals);
+  } else { routine = chips[0]?.textContent||'없음'; }
+  await sb.patch(`/items?id=eq.${editingId}`, { text, routine });
+  const idx = allItems[editingType].findIndex(i=>i.id===editingId);
+  if (idx!==-1) { allItems[editingType][idx].text=text; allItems[editingType][idx].routine=routine; }
   closeSheet('edit');
   renderList(editingType);
 }
 
-// ── FAB ──────────────────────────────────────────────
-document.getElementById('fab-btn').addEventListener('click', () => {
-  openSheet(currentTab);
-});
+// ── FAB ──────────────────────────────────────
+document.getElementById('fab-btn').addEventListener('click', () => openSheet(currentTab));
 
-// ── 초기화 ──────────────────────────────────────────
-document.getElementById('daily-date').textContent = formatDateKo(today);
-document.getElementById('monthly-date').textContent = formatMonthKo(today);
-renderList('daily');
-renderList('monthly');
+// ── 초기 로드 ────────────────────────────────
+loadData('daily');
+loadData('monthly');
 </script>
 </body>
 </html>

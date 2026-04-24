@@ -7,39 +7,39 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="common.css">
 <style>
-.filter-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--radius-full);background:var(--bg2);border:1px solid var(--border);font-size:12px;color:var(--text-2);cursor:pointer;font-family:inherit;transition:background 0.15s;}
-.filter-btn.active{background:var(--bg3);color:var(--text-1);}
-.filter-btn:disabled{opacity:0.3;cursor:not-allowed;}
-.view-toggle{display:flex;background:var(--bg2);border-radius:var(--radius-full);border:1px solid var(--border);overflow:hidden;}
-.view-btn{padding:6px 14px;font-size:12px;font-weight:500;color:var(--text-3);cursor:pointer;border:none;background:transparent;font-family:inherit;transition:all 0.15s;border-radius:var(--radius-full);}
-.view-btn.active{background:var(--bg3);color:var(--text-1);}
-.date-group{margin-bottom:20px;}
-.date-label{display:flex;justify-content:space-between;font-size:13px;color:var(--text-3);margin-bottom:8px;padding:0 2px;}
-.date-label .date{color:var(--text-2);}
-.cal-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-.cal-month-btn{width:30px;height:30px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;}
-.cal-month-title{font-size:16px;font-weight:600;}
-.cal-days-header{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px;}
-.cal-day-lbl{text-align:center;font-size:11px;color:var(--text-3);padding:4px 0;}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
-.cal-cell{display:flex;flex-direction:column;align-items:center;padding:4px 2px;border-radius:var(--radius-sm);cursor:pointer;transition:background 0.15s;}
-.cal-cell:active{background:var(--bg3);}
-.cal-cell.selected{background:var(--bg3);}
-.cal-num{font-size:13px;color:var(--text-2);line-height:1.4;}
-.cal-num.today{color:var(--orange);font-weight:700;}
-.cal-num.other{color:var(--text-3);opacity:0.4;}
-.cal-pct{font-size:9px;color:var(--text-3);margin-top:1px;}
-.cal-pct.full{color:var(--text-2);}
-.cal-divider{height:0.5px;background:var(--border);margin:16px 0;}
-.cal-selected-label{font-size:13px;color:var(--text-3);margin-bottom:10px;}
-.empty-state{text-align:center;padding:40px 20px;color:var(--text-3);font-size:14px;}
-.record-check{width:20px;height:20px;border-radius:5px;flex-shrink:0;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;}
-.record-check.checked{background:var(--orange);border-color:var(--orange);}
-.record-check.checked::after{content:'';width:8px;height:5px;border-left:2px solid white;border-bottom:2px solid white;transform:rotate(-45deg) translate(0.5px,-2px);display:block;}
-.record-done{color:var(--text-3);text-decoration:line-through;}
+.filter-btn { display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--radius-full);background:var(--bg2);border:1px solid var(--border);font-size:12px;color:var(--text-2);cursor:pointer;font-family:inherit;transition:background 0.15s; }
+.filter-btn.active { background:var(--bg3);color:var(--text-1); }
+.filter-btn:disabled { opacity:0.3;cursor:not-allowed; }
+.view-toggle { display:flex;background:var(--bg2);border-radius:var(--radius-full);border:1px solid var(--border);overflow:hidden; }
+.view-btn { padding:6px 14px;font-size:12px;font-weight:500;color:var(--text-3);cursor:pointer;border:none;background:transparent;font-family:inherit;transition:all 0.15s;border-radius:var(--radius-full); }
+.view-btn.active { background:var(--bg3);color:var(--text-1); }
+.date-group { margin-bottom:20px; }
+.date-label { display:flex;justify-content:space-between;font-size:13px;color:var(--text-3);margin-bottom:8px;padding:0 2px; }
+.date-label .date { color:var(--text-2); }
+.cal-header-row { display:flex;justify-content:space-between;align-items:center;margin-bottom:12px; }
+.cal-month-btn { width:30px;height:30px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer; }
+.cal-month-title { font-size:16px;font-weight:600; }
+.cal-days-header { display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px; }
+.cal-day-lbl { text-align:center;font-size:11px;color:var(--text-3);padding:4px 0; }
+.cal-grid { display:grid;grid-template-columns:repeat(7,1fr);gap:3px; }
+.cal-cell { display:flex;flex-direction:column;align-items:center;padding:4px 2px;border-radius:var(--radius-sm);cursor:pointer;transition:background 0.15s; }
+.cal-cell:active,.cal-cell.selected { background:var(--bg3); }
+.cal-num { font-size:13px;color:var(--text-2);line-height:1.4; }
+.cal-num.today { color:var(--orange);font-weight:700; }
+.cal-num.other { color:var(--text-3);opacity:0.4; }
+.cal-pct { font-size:9px;color:var(--text-3);margin-top:1px; }
+.cal-pct.full { color:var(--text-2); }
+.cal-divider { height:0.5px;background:var(--border);margin:16px 0; }
+.cal-selected-label { font-size:13px;color:var(--text-3);margin-bottom:10px; }
+.empty-state { text-align:center;padding:40px 20px;color:var(--text-3);font-size:14px; }
+.loading { text-align:center;padding:40px 20px;color:var(--text-3);font-size:14px; }
+.record-check { width:20px;height:20px;border-radius:5px;flex-shrink:0;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center; }
+.record-check.checked { background:var(--orange);border-color:var(--orange); }
+.record-check.checked::after { content:'';width:8px;height:5px;border-left:2px solid white;border-bottom:2px solid white;transform:rotate(-45deg) translate(0.5px,-2px);display:block; }
 </style>
 </head>
 <body>
+<script src="supabase.js"></script>
 <div class="seg-wrap">
   <div class="seg-tab active" id="tab-daily" onclick="switchTab('daily')">일간</div>
   <div class="seg-tab" id="tab-monthly" onclick="switchTab('monthly')">월간</div>
@@ -48,19 +48,26 @@
   <div class="page-header" style="margin-bottom:20px;">
     <div class="page-title">기록</div>
     <div style="display:flex;gap:8px;align-items:center;">
-      <div class="view-toggle"><button class="view-btn active" id="daily-list-btn" onclick="setDailyView('list')">일별</button><button class="view-btn" id="daily-cal-btn" onclick="setDailyView('calendar')">월별</button></div>
-      <button class="filter-btn active" id="daily-sort-btn" onclick="toggleSort('daily')">최신순 <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      <div class="view-toggle">
+        <button class="view-btn active" id="daily-list-btn" onclick="setDailyView('list')">일별</button>
+        <button class="view-btn" id="daily-cal-btn" onclick="setDailyView('calendar')">월별</button>
+      </div>
+      <button class="filter-btn active" id="daily-sort-btn" onclick="toggleSort('daily')">
+        최신순 <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
     </div>
   </div>
-  <div id="daily-list-view"></div>
+  <div id="daily-list-view"><div class="loading">불러오는 중...</div></div>
   <div id="daily-cal-view" style="display:none;"></div>
 </div>
 <div class="content" id="content-monthly" style="display:none;">
   <div class="page-header" style="margin-bottom:20px;">
     <div class="page-title">기록</div>
-    <button class="filter-btn active" id="monthly-sort-btn" onclick="toggleSort('monthly')">최신순 <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    <button class="filter-btn active" id="monthly-sort-btn" onclick="toggleSort('monthly')">
+      최신순 <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
   </div>
-  <div id="monthly-list-view"></div>
+  <div id="monthly-list-view"><div class="loading">불러오는 중...</div></div>
 </div>
 <div class="tab-bar">
   <a class="tab-item" href="index.html"><svg class="tab-icon" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 10h16M4 14h10" stroke="#636366" stroke-width="2" stroke-linecap="round"/></svg><span class="tab-label">목표</span></a>
@@ -69,35 +76,174 @@
   <a class="tab-item" href="settings.html"><svg class="tab-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#636366" stroke-width="2"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="#636366" stroke-width="2" stroke-linecap="round"/></svg><span class="tab-label">설정</span></a>
 </div>
 <script>
-const SUPABASE_URL='https://jlunlauuugokqqtgrdhz.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsdW5sYXV1dWdva3FxdGdyZGh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5Nzc2NzQsImV4cCI6MjA5MjU1MzY3NH0.mJerXjdhWVBirtMnyp-MbuVG31Y5EyDoxWAIQNLmSwg';
-async function api(path,opts={}){const res=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':opts.prefer||''},method:opts.method||'GET',body:opts.body?JSON.stringify(opts.body):undefined});if(res.status===204)return null;return res.json();}
-
-const DAYS=['일','월','화','수','목','금','토'];
-const today=new Date();
+const DAYS = ['일','월','화','수','목','금','토'];
+const today = new Date();
 let currentTab='daily', dailySortDesc=true, monthlySortDesc=true;
 let calYear=today.getFullYear(), calMonth=today.getMonth(), selectedCalDate=null;
 let dailyRecords=[], monthlyRecords=[];
 
-function switchTab(tab){currentTab=tab;document.getElementById('tab-daily').classList.toggle('active',tab==='daily');document.getElementById('tab-monthly').classList.toggle('active',tab==='monthly');document.getElementById('content-daily').style.display=tab==='daily'?'block':'none';document.getElementById('content-monthly').style.display=tab==='monthly'?'block':'none';}
+function switchTab(tab) {
+  currentTab=tab;
+  document.getElementById('tab-daily').classList.toggle('active',tab==='daily');
+  document.getElementById('tab-monthly').classList.toggle('active',tab==='monthly');
+  document.getElementById('content-daily').style.display=tab==='daily'?'block':'none';
+  document.getElementById('content-monthly').style.display=tab==='monthly'?'block':'none';
+}
+function setDailyView(view) {
+  document.getElementById('daily-list-btn').classList.toggle('active',view==='list');
+  document.getElementById('daily-cal-btn').classList.toggle('active',view==='calendar');
+  document.getElementById('daily-list-view').style.display=view==='list'?'block':'none';
+  document.getElementById('daily-cal-view').style.display=view==='calendar'?'block':'none';
+  const btn=document.getElementById('daily-sort-btn');
+  btn.disabled=view==='calendar'; btn.classList.toggle('active',view!=='calendar');
+  if(view==='calendar') renderCalendar();
+}
+function toggleSort(type) {
+  if(type==='daily') {
+    dailySortDesc=!dailySortDesc;
+    document.getElementById('daily-sort-btn').innerHTML=dailySortDesc
+      ?'최신순 <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
+      :'오래된순 <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 15l6-6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    renderDailyList();
+  } else {
+    monthlySortDesc=!monthlySortDesc;
+    document.getElementById('monthly-sort-btn').innerHTML=monthlySortDesc
+      ?'최신순 <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
+      :'오래된순 <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 15l6-6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    renderMonthlyList();
+  }
+}
 
-function setDailyView(view){document.getElementById('daily-list-btn').classList.toggle('active',view==='list');document.getElementById('daily-cal-btn').classList.toggle('active',view==='calendar');document.getElementById('daily-list-view').style.display=view==='list'?'block':'none';document.getElementById('daily-cal-view').style.display=view==='calendar'?'block':'none';const s=document.getElementById('daily-sort-btn');s.disabled=view==='calendar';s.classList.toggle('active',view!=='calendar');if(view==='calendar')renderCalendar();}
+async function loadDailyRecords() {
+  // 날짜별 체크 기록 집계
+  const [items, checks] = await Promise.all([
+    sb.get('/items?type=eq.daily&order=created_at.asc'),
+    sb.get('/checks?select=item_id,check_date')
+  ]);
+  if (!Array.isArray(items)||!Array.isArray(checks)) { dailyRecords=[]; renderDailyList(); return; }
+  // 날짜별 그룹핑
+  const dateMap = {};
+  checks.forEach(c => {
+    if (!dateMap[c.check_date]) dateMap[c.check_date] = new Set();
+    dateMap[c.check_date].add(c.item_id);
+  });
+  dailyRecords = Object.entries(dateMap).map(([date, checkedIds]) => {
+    const dayItems = items.map(i => ({ id:i.id, text:i.text, done:checkedIds.has(i.id) }));
+    const done = dayItems.filter(i=>i.done).length;
+    const pct = dayItems.length ? Math.round(done/dayItems.length*100) : 0;
+    return { date, pct, items: dayItems };
+  });
+  renderDailyList();
+}
 
-function toggleSort(type){if(type==='daily'){dailySortDesc=!dailySortDesc;document.getElementById('daily-sort-btn').innerHTML=dailySortDesc?'최신순 <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>':'오래된순 <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 15l6-6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';renderDailyList();}else{monthlySortDesc=!monthlySortDesc;document.getElementById('monthly-sort-btn').innerHTML=monthlySortDesc?'최신순 <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>':'오래된순 <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 15l6-6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';renderMonthlyList();}}
+async function loadMonthlyRecords() {
+  const [items, checks] = await Promise.all([
+    sb.get('/items?type=eq.monthly&order=created_at.asc'),
+    sb.get('/checks?select=item_id,check_date&item_id=in.(' + 'select_monthly' + ')')
+  ]);
+  // 월별 체크는 check_date가 YYYY-M 형식
+  const checksAll = await sb.get('/checks?select=item_id,check_date');
+  if (!Array.isArray(items)||!Array.isArray(checksAll)) { monthlyRecords=[]; renderMonthlyList(); return; }
+  const monthlyItemIds = new Set((Array.isArray(items)?items:[]).map(i=>i.id));
+  const monthMap = {};
+  checksAll.filter(c=>monthlyItemIds.has(c.item_id)).forEach(c => {
+    if (!monthMap[c.check_date]) monthMap[c.check_date] = new Set();
+    monthMap[c.check_date].add(c.item_id);
+  });
+  monthlyRecords = Object.entries(monthMap).map(([date, checkedIds]) => {
+    const monthItems = items.map(i=>({id:i.id,text:i.text,done:checkedIds.has(i.id)}));
+    return { date, items: monthItems };
+  });
+  renderMonthlyList();
+}
 
-function itemsHtml(items){if(!items||items.length===0)return '<div class="empty-state" style="padding:12px 0;">항목 없음</div>';return items.map(i=>`<div class="todo-item"><div class="record-check ${i.done?'checked':''}"></div><span class="todo-text ${i.done?'record-done':''}">${i.text}</span></div>`).join('');}
+function renderDailyList() {
+  const sorted = [...dailyRecords].sort((a,b)=>dailySortDesc?b.date.localeCompare(a.date):a.date.localeCompare(b.date));
+  const el = document.getElementById('daily-list-view');
+  if (!sorted.length) { el.innerHTML=`<div class="empty-state">아직 기록이 없어요 📝</div>`; return; }
+  el.innerHTML = sorted.map(rec => {
+    const parts = rec.date.split('-');
+    const dt = new Date(parts[0],parts[1]-1,parts[2]);
+    const dow = DAYS[dt.getDay()]+'요일';
+    return `<div class="date-group">
+      <div class="date-label"><span class="date">${parts[1]}월 ${parts[2]}일</span><span>${dow}</span></div>
+      <div class="todo-list">${(rec.items||[]).map(i=>`
+        <div class="todo-item">
+          <div class="record-check ${i.done?'checked':''}"></div>
+          <span class="todo-text ${i.done?'done':''}" style="${i.done?'color:var(--text-3);text-decoration:line-through;':''}">${i.text}</span>
+        </div>`).join('')}</div>
+    </div>`;
+  }).join('');
+}
 
-function renderDailyList(){const sorted=[...dailyRecords].sort((a,b)=>dailySortDesc?b.record_date.localeCompare(a.record_date):a.record_date.localeCompare(b.record_date));const el=document.getElementById('daily-list-view');if(sorted.length===0){el.innerHTML=`<div class="empty-state">아직 기록이 없어요 📝</div>`;return;}el.innerHTML=sorted.map(rec=>{const[y,m,d]=rec.record_date.split('-');const dow=DAYS[new Date(y,m-1,d).getDay()]+'요일';const items=typeof rec.items==='string'?JSON.parse(rec.items):rec.items||[];return`<div class="date-group"><div class="date-label"><span class="date">${parseInt(m)}월 ${parseInt(d)}일</span><span>${dow}</span></div><div class="todo-list">${itemsHtml(items)}</div></div>`;}).join('');}
+function renderMonthlyList() {
+  const sorted = [...monthlyRecords].sort((a,b)=>monthlySortDesc?b.date.localeCompare(a.date):a.date.localeCompare(b.date));
+  const el = document.getElementById('monthly-list-view');
+  if (!sorted.length) { el.innerHTML=`<div class="empty-state">아직 기록이 없어요 📝</div>`; return; }
+  el.innerHTML = sorted.map(rec => {
+    const [y,m] = rec.date.split('-');
+    return `<div class="date-group">
+      <div class="date-label"><span class="date">${parseInt(m)}월, ${y}년</span></div>
+      <div class="todo-list">${(rec.items||[]).map(i=>`
+        <div class="todo-item">
+          <div class="record-check ${i.done?'checked':''}"></div>
+          <span class="todo-text ${i.done?'done':''}" style="${i.done?'color:var(--text-3);text-decoration:line-through;':''}">${i.text}</span>
+        </div>`).join('')}</div>
+    </div>`;
+  }).join('');
+}
 
-function renderMonthlyList(){const sorted=[...monthlyRecords].sort((a,b)=>monthlySortDesc?b.record_date.localeCompare(a.record_date):a.record_date.localeCompare(b.record_date));const el=document.getElementById('monthly-list-view');if(sorted.length===0){el.innerHTML=`<div class="empty-state">아직 기록이 없어요 📝</div>`;return;}const groups={};sorted.forEach(rec=>{const[y,m]=rec.record_date.split('-');const key=`${y}년 ${parseInt(m)}월`;if(!groups[key])groups[key]=[];groups[key].push(rec);});el.innerHTML=Object.entries(groups).map(([label,recs])=>`<div class="date-group"><div class="date-label"><span class="date">${label}</span></div><div class="todo-list">${recs.flatMap(r=>{const items=typeof r.items==='string'?JSON.parse(r.items):r.items||[];return items;}).map(i=>`<div class="todo-item"><div class="record-check ${i.done?'checked':''}"></div><span class="todo-text ${i.done?'record-done':''}">${i.text}</span></div>`).join('')}</div></div>`).join('');}
+function renderCalendar() {
+  const pctMap = {};
+  dailyRecords.forEach(r => { pctMap[r.date]=r.pct; });
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const prevDays=new Date(calYear,calMonth,0).getDate();
+  let cells='';
+  for(let i=firstDay-1;i>=0;i--) cells+=`<div class="cal-cell"><span class="cal-num other">${prevDays-i}</span></div>`;
+  for(let d=1;d<=daysInMonth;d++) {
+    const key=`${calYear}-${calMonth+1}-${d}`;
+    const isToday=calYear===today.getFullYear()&&calMonth===today.getMonth()&&d===today.getDate();
+    const isSel=selectedCalDate===key;
+    const pct=pctMap[key];
+    cells+=`<div class="cal-cell ${isSel?'selected':''}" onclick="selectCalDate('${key}')">
+      <span class="cal-num ${isToday?'today':''}">${d}</span>
+      ${pct!==undefined?`<span class="cal-pct ${pct===100?'full':''}">${pct}%</span>`:''}
+    </div>`;
+  }
+  const rem=42-firstDay-daysInMonth+(firstDay===0?7:0);
+  for(let d=1;d<=Math.min(rem,7);d++) cells+=`<div class="cal-cell"><span class="cal-num other">${d}</span></div>`;
+  let selHtml='';
+  if(selectedCalDate) {
+    const [y,m,d]=selectedCalDate.split('-');
+    const rec=dailyRecords.find(r=>r.date===selectedCalDate);
+    const dow=DAYS[new Date(y,m-1,d).getDay()]+'요일';
+    selHtml=`<div class="cal-divider"></div>
+      <div class="cal-selected-label">${m}월 ${d}일 ${dow}</div>
+      <div class="todo-list">${rec?rec.items.map(i=>`
+        <div class="todo-item">
+          <div class="record-check ${i.done?'checked':''}"></div>
+          <span class="todo-text" style="${i.done?'color:var(--text-3);text-decoration:line-through;':''}">${i.text}</span>
+        </div>`).join(''):'<div class="empty-state" style="padding:16px 0;">이 날의 기록이 없어요</div>'}</div>`;
+  }
+  document.getElementById('daily-cal-view').innerHTML=`
+    <div class="cal-header-row">
+      <div class="cal-month-btn" onclick="changeCalMonth(-1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <span class="cal-month-title">${calYear}년 ${calMonth+1}월</span>
+      <div class="cal-month-btn" onclick="changeCalMonth(1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div>
+    </div>
+    <div class="cal-days-header">${DAYS.map(d=>`<div class="cal-day-lbl">${d}</div>`).join('')}</div>
+    <div class="cal-grid">${cells}</div>${selHtml}`;
+}
+function selectCalDate(key) { selectedCalDate=selectedCalDate===key?null:key; renderCalendar(); }
+function changeCalMonth(dir) {
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;} if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendar();
+}
 
-function renderCalendar(){const pctMap={};dailyRecords.forEach(r=>{pctMap[r.record_date]=r.pct;});const firstDay=new Date(calYear,calMonth,1).getDay();const daysInMonth=new Date(calYear,calMonth+1,0).getDate();const prevDays=new Date(calYear,calMonth,0).getDate();let cells='';for(let i=firstDay-1;i>=0;i--)cells+=`<div class="cal-cell"><span class="cal-num other">${prevDays-i}</span></div>`;for(let d=1;d<=daysInMonth;d++){const key=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const isToday=calYear===today.getFullYear()&&calMonth===today.getMonth()&&d===today.getDate();const isSel=selectedCalDate===key;const pct=pctMap[key];cells+=`<div class="cal-cell ${isSel?'selected':''}" onclick="selectCalDate('${key}')"><span class="cal-num ${isToday?'today':''}">${d}</span>${pct!==undefined?`<span class="cal-pct ${pct===100?'full':''}">${pct}%</span>`:''}</div>`;}const remaining=42-firstDay-daysInMonth+(firstDay===0?7:0);for(let d=1;d<=Math.min(remaining,7);d++)cells+=`<div class="cal-cell"><span class="cal-num other">${d}</span></div>`;let selHtml='';if(selectedCalDate){const[y,m,d]=selectedCalDate.split('-');const rec=dailyRecords.find(r=>r.record_date===selectedCalDate);const dow=DAYS[new Date(y,m-1,d).getDay()]+'요일';const items=rec?(typeof rec.items==='string'?JSON.parse(rec.items):rec.items||[]):[];selHtml=`<div class="cal-divider"></div><div class="cal-selected-label">${parseInt(m)}월 ${parseInt(d)}일 ${dow}</div><div class="todo-list">${items.length?itemsHtml(items):'<div class="empty-state" style="padding:16px 0;">이 날의 기록이 없어요</div>'}</div>`;}document.getElementById('daily-cal-view').innerHTML=`<div class="cal-header-row"><div class="cal-month-btn" onclick="changeCalMonth(-1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div><span class="cal-month-title">${calYear}년 ${calMonth+1}월</span><div class="cal-month-btn" onclick="changeCalMonth(1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div></div><div class="cal-days-header">${DAYS.map(d=>`<div class="cal-day-lbl">${d}</div>`).join('')}</div><div class="cal-grid">${cells}</div>${selHtml}`;}
-
-function selectCalDate(key){selectedCalDate=selectedCalDate===key?null:key;renderCalendar();}
-function changeCalMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
-
-async function init(){const[dr,mr]=await Promise.all([api('records?type=eq.daily&order=record_date.desc'),api('records?type=eq.monthly&order=record_date.desc')]);dailyRecords=dr||[];monthlyRecords=mr||[];renderDailyList();renderMonthlyList();}
-init();
+loadDailyRecords();
+loadMonthlyRecords();
 </script>
 </body>
 </html>
