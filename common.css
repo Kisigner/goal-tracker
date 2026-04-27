@@ -101,27 +101,26 @@ body {
 }
 .page-sub { font-size: 13px; color: var(--text-3); margin-bottom: 24px; }
 
-/* Ring chart */
-.ring-wrap {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 28px;
+/* Clock */
+.clock-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
+.clock-svg { width: 160px; height: 160px; }
+
+/* Progress bar */
+.progress-wrap { margin-bottom: 24px; }
+.progress-meta {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 8px;
 }
-.ring-container { position: relative; width: 160px; height: 160px; }
-.ring-svg { width: 160px; height: 160px; }
-.ring-center {
-  position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
+.progress-pct { font-size: 28px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+.progress-pct span { font-size: 15px; font-weight: 500; margin-left: 2px; }
+.progress-count { font-size: 13px; color: var(--text-2); }
+.progress-count b { color: var(--text-1); }
+.progress-track {
+  height: 8px; background: var(--bg2); border-radius: var(--radius-full); overflow: hidden;
 }
-.ring-pct { font-size: 36px; font-weight: 700; letter-spacing: -1.5px; line-height: 1; }
-.ring-pct span { font-size: 18px; font-weight: 500; margin-left: 2px; }
-.ring-done { font-size: 13px; color: var(--text-2); margin-top: 4px; }
-.ring-done b { color: var(--text-1); }
-.ring-progress {
-  transform-origin: center;
-  transform: rotate(-90deg);
-  transition: stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1);
+.progress-fill {
+  height: 100%; background: var(--orange); border-radius: var(--radius-full);
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
 }
 
 /* Section header */
@@ -138,15 +137,41 @@ body {
 /* Todo list */
 .todo-list { display: flex; flex-direction: column; gap: 8px; }
 .todo-item {
-  display: flex; align-items: center; gap: 12px;
+  display: flex; align-items: center; gap: 10px;
   background: var(--bg2);
   border-radius: var(--radius-md);
-  padding: 14px 14px 14px 16px;
+  padding: 12px 12px 12px 14px;
   border: 1px solid var(--border);
   cursor: pointer;
   transition: background 0.15s;
 }
 .todo-item:active { background: var(--bg3); }
+.item-color-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  cursor: pointer; transition: transform 0.15s; position: relative;
+}
+.item-color-dot:active { transform: scale(1.3); }
+
+/* Inline color picker popup */
+.color-picker-popup {
+  position: fixed;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  display: none;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 196px;
+  z-index: 400;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.55);
+}
+.color-picker-popup.open { display: flex; }
+
+/* Delete all button */
+.sec-del { font-size: 13px; color: #FF453A; cursor: pointer; padding: 4px 0; }
+.todo-content { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.todo-time { font-size: 11px; color: var(--text-3); }
 .checkbox {
   width: 22px; height: 22px; border-radius: 6px;
   border: 2px solid var(--bg4);
@@ -168,9 +193,9 @@ body {
   display: block;
 }
 .todo-text {
-  flex: 1;
   font-size: 15px; font-weight: 400;
   color: var(--text-1);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .todo-text.done {
   color: var(--text-3);
@@ -330,6 +355,33 @@ body {
 }
 .input-clear::before { transform: rotate(45deg); }
 .input-clear::after { transform: rotate(-45deg); }
+
+/* Color picker */
+.color-row {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.color-swatch {
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+  transition: transform 0.15s; flex-shrink: 0; position: relative;
+}
+.color-swatch:active { transform: scale(0.88); }
+.color-swatch.selected::after {
+  content: ''; position: absolute; inset: -3px; border-radius: 50%;
+  border: 2px solid var(--text-1);
+}
+
+/* Time inputs */
+.time-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+}
+.time-input {
+  flex: 1; background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 10px 12px;
+  color: var(--text-1); font-size: 14px; font-family: inherit; outline: none;
+  transition: border-color 0.2s; color-scheme: dark;
+}
+.time-input:focus { border-color: var(--orange); }
+.time-sep { color: var(--text-3); font-size: 14px; flex-shrink: 0; }
 
 /* Routine chips */
 .chip-row {

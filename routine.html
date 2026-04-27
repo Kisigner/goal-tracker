@@ -21,11 +21,17 @@
   <div class="seg-tab" id="tab-monthly" onclick="switchTab('monthly')">월간</div>
 </div>
 <div class="content" id="content-daily">
-  <div class="page-header" style="margin-bottom:24px;"><div class="page-title">루틴</div></div>
+  <div class="page-header" style="margin-bottom:24px;">
+    <div class="page-title">루틴</div>
+    <span class="sec-del" id="daily-del-btn" style="display:none" onclick="deleteAllRoutines('daily')">전체삭제</span>
+  </div>
   <div id="daily-routine-list"><div class="loading">불러오는 중...</div></div>
 </div>
 <div class="content" id="content-monthly" style="display:none;">
-  <div class="page-header" style="margin-bottom:24px;"><div class="page-title">루틴</div></div>
+  <div class="page-header" style="margin-bottom:24px;">
+    <div class="page-title">루틴</div>
+    <span class="sec-del" id="monthly-del-btn" style="display:none" onclick="deleteAllRoutines('monthly')">전체삭제</span>
+  </div>
   <div id="monthly-routine-list"><div class="loading">불러오는 중...</div></div>
 </div>
 <div class="tab-bar">
@@ -69,12 +75,24 @@ async function loadData(type) {
   renderRoutine(type);
 }
 
-function renderRoutine(type) {
+async function deleteAllRoutines(type) {
   const items = allItems[type];
+  if (!items.length) return;
+  if (!confirm(`루틴 항목 ${items.length}개를 모두 삭제할까요?`)) return;
+  await Promise.all(items.map(i => sb.del(`/items?id=eq.${i.id}`)));
+  allItems[type] = [];
+  renderRoutine(type);
+}
+
+function renderRoutine(type) {
+  const items  = allItems[type];
   const listEl = document.getElementById(type+'-routine-list');
+  const delBtn = document.getElementById(type+'-del-btn');
   if (items.length === 0) {
+    if (delBtn) delBtn.style.display = 'none';
     listEl.innerHTML = `<div class="empty-state">루틴 목표가 없어요<br>목표 추가 시 루틴을 설정해보세요 🔁</div>`; return;
   }
+  if (delBtn) delBtn.style.display = '';
   const groups = {};
   items.forEach(item => {
     let routines = [item.routine];

@@ -7,26 +7,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="common.css">
 <style>
-.ring-progress {
-  transform-origin: center;
-  transform: rotate(-90deg);
-  transition: stroke-dashoffset 0.8s cubic-bezier(0.4,0,0.2,1);
-  stroke-dasharray: 440;
-  stroke-dashoffset: 440;
-}
 .empty-state {
   display: flex; align-items: center; justify-content: center;
-  gap: 8px;
-  padding: 20px;
-  background: var(--bg2);
-  border: 1.5px dashed var(--border);
-  border-radius: var(--radius-md);
-  color: var(--text-3);
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.15s;
+  gap: 8px; padding: 20px;
+  background: var(--bg2); border: 1.5px dashed var(--border);
+  border-radius: var(--radius-md); color: var(--text-3);
+  font-size: 14px; cursor: pointer; transition: background 0.15s;
 }
 .empty-state:active { background: var(--bg3); }
+/* clock number text */
+.clock-num { font-size: 7px; fill: #636366; text-anchor: middle; dominant-baseline: middle; font-family: 'Noto Sans KR', sans-serif; }
+.clock-num-key { font-size: 7.5px; fill: #AEAEB2; text-anchor: middle; dominant-baseline: middle; font-family: 'Noto Sans KR', sans-serif; }
 </style>
 </head>
 <body>
@@ -45,22 +36,52 @@
     <div class="streak-chip" id="daily-streak">🔥 잘 하고 있어요!</div>
   </div>
   <div class="page-sub" id="daily-date"></div>
-  <div class="ring-wrap">
-    <div class="ring-container">
-      <svg class="ring-svg" viewBox="0 0 160 160">
-        <circle cx="80" cy="80" r="70" fill="none" stroke="#2C2C2E" stroke-width="12"/>
-        <circle id="daily-ring" class="ring-progress" cx="80" cy="80" r="70"
-          fill="none" stroke="white" stroke-width="12" stroke-linecap="round"/>
-      </svg>
-      <div class="ring-center">
-        <div class="ring-pct" id="daily-pct">0<span>%</span></div>
-        <div class="ring-done">완료 <b id="daily-done">0</b>/<span id="daily-total">0</span></div>
-      </div>
+
+  <div class="clock-wrap">
+    <svg class="clock-svg" viewBox="0 0 160 160">
+      <circle cx="80" cy="80" r="72" fill="#1C1C1E"/>
+      <g id="daily-clock-segments"></g>
+      <circle cx="80" cy="80" r="61" fill="#1C1C1E"/>
+      <circle cx="80" cy="80" r="61" fill="none" stroke="#2C2C2E" stroke-width="0.5"/>
+      <g id="daily-clock-ticks"></g>
+      <!-- 시계 숫자 (12, 3, 6, 9 강조) -->
+      <text class="clock-num-key" x="80"  y="36" >12</text>
+      <text class="clock-num"     x="102" y="42" >1</text>
+      <text class="clock-num"     x="118" y="58" >2</text>
+      <text class="clock-num-key" x="124" y="80" >3</text>
+      <text class="clock-num"     x="118" y="102">4</text>
+      <text class="clock-num"     x="102" y="118">5</text>
+      <text class="clock-num-key" x="80"  y="124">6</text>
+      <text class="clock-num"     x="58"  y="118">7</text>
+      <text class="clock-num"     x="42"  y="102">8</text>
+      <text class="clock-num-key" x="36"  y="80" >9</text>
+      <text class="clock-num"     x="42"  y="58" >10</text>
+      <text class="clock-num"     x="58"  y="42" >11</text>
+      <!-- 바늘 -->
+      <line id="daily-hand-hour"   x1="80" y1="80" x2="80" y2="45" stroke="white"   stroke-width="3.5" stroke-linecap="round"/>
+      <line id="daily-hand-minute" x1="80" y1="80" x2="80" y2="30" stroke="white"   stroke-width="2.5" stroke-linecap="round"/>
+      <line id="daily-hand-second" x1="80" y1="90" x2="80" y2="26" stroke="#FF8C00" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="80" cy="80" r="3.5" fill="white"/>
+      <circle cx="80" cy="80" r="1.8" fill="#FF8C00"/>
+    </svg>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-meta">
+      <div class="progress-pct" id="daily-pct">0<span>%</span></div>
+      <div class="progress-count">완료 <b id="daily-done">0</b>/<span id="daily-total">0</span></div>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="daily-progress" style="width:0%"></div>
     </div>
   </div>
+
   <div class="sec-header">
     <span class="sec-title">To-Do-List</span>
-    <span class="sec-action" onclick="openSheet('daily')">+ 추가</span>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <span class="sec-del" id="daily-del-btn" style="display:none" onclick="deleteAllItems('daily')">전체삭제</span>
+      <span class="sec-action" onclick="openSheet('daily')">+ 추가</span>
+    </div>
   </div>
   <div class="todo-list" id="daily-list"><div class="loading">불러오는 중...</div></div>
 </div>
@@ -72,22 +93,50 @@
     <div class="streak-chip" id="monthly-streak">🔥 잘 하고 있어요!</div>
   </div>
   <div class="page-sub" id="monthly-date"></div>
-  <div class="ring-wrap">
-    <div class="ring-container">
-      <svg class="ring-svg" viewBox="0 0 160 160">
-        <circle cx="80" cy="80" r="70" fill="none" stroke="#2C2C2E" stroke-width="12"/>
-        <circle id="monthly-ring" class="ring-progress" cx="80" cy="80" r="70"
-          fill="none" stroke="white" stroke-width="12" stroke-linecap="round"/>
-      </svg>
-      <div class="ring-center">
-        <div class="ring-pct" id="monthly-pct">0<span>%</span></div>
-        <div class="ring-done">완료 <b id="monthly-done">0</b>/<span id="monthly-total">0</span></div>
-      </div>
+
+  <div class="clock-wrap">
+    <svg class="clock-svg" viewBox="0 0 160 160">
+      <circle cx="80" cy="80" r="72" fill="#1C1C1E"/>
+      <g id="monthly-clock-segments"></g>
+      <circle cx="80" cy="80" r="61" fill="#1C1C1E"/>
+      <circle cx="80" cy="80" r="61" fill="none" stroke="#2C2C2E" stroke-width="0.5"/>
+      <g id="monthly-clock-ticks"></g>
+      <text class="clock-num-key" x="80"  y="36" >12</text>
+      <text class="clock-num"     x="102" y="42" >1</text>
+      <text class="clock-num"     x="118" y="58" >2</text>
+      <text class="clock-num-key" x="124" y="80" >3</text>
+      <text class="clock-num"     x="118" y="102">4</text>
+      <text class="clock-num"     x="102" y="118">5</text>
+      <text class="clock-num-key" x="80"  y="124">6</text>
+      <text class="clock-num"     x="58"  y="118">7</text>
+      <text class="clock-num"     x="42"  y="102">8</text>
+      <text class="clock-num-key" x="36"  y="80" >9</text>
+      <text class="clock-num"     x="42"  y="58" >10</text>
+      <text class="clock-num"     x="58"  y="42" >11</text>
+      <line id="monthly-hand-hour"   x1="80" y1="80" x2="80" y2="45" stroke="white"   stroke-width="3.5" stroke-linecap="round"/>
+      <line id="monthly-hand-minute" x1="80" y1="80" x2="80" y2="30" stroke="white"   stroke-width="2.5" stroke-linecap="round"/>
+      <line id="monthly-hand-second" x1="80" y1="90" x2="80" y2="26" stroke="#FF8C00" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="80" cy="80" r="3.5" fill="white"/>
+      <circle cx="80" cy="80" r="1.8" fill="#FF8C00"/>
+    </svg>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-meta">
+      <div class="progress-pct" id="monthly-pct">0<span>%</span></div>
+      <div class="progress-count">완료 <b id="monthly-done">0</b>/<span id="monthly-total">0</span></div>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="monthly-progress" style="width:0%"></div>
     </div>
   </div>
+
   <div class="sec-header">
     <span class="sec-title">To-Do-List</span>
-    <span class="sec-action" onclick="openSheet('monthly')">+ 추가</span>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <span class="sec-del" id="monthly-del-btn" style="display:none" onclick="deleteAllItems('monthly')">전체삭제</span>
+      <span class="sec-action" onclick="openSheet('monthly')">+ 추가</span>
+    </div>
   </div>
   <div class="todo-list" id="monthly-list"><div class="loading">불러오는 중...</div></div>
 </div>
@@ -114,9 +163,12 @@
 
 <button class="fab" id="fab-btn"><div class="fab-icon"></div></button>
 
+<!-- 인라인 컬러 피커 팝업 -->
+<div class="color-picker-popup" id="color-picker-popup"></div>
+
 <!-- Sheet: 일간 추가 -->
 <div class="sheet-overlay" id="sheet-daily">
-  <div class="sheet">
+  <div class="sheet" style="max-height:85vh;overflow-y:auto;">
     <div class="sheet-handle"></div>
     <div class="sheet-title">일간 목표 추가하기</div>
     <div class="form-label">목표 설정</div>
@@ -136,6 +188,14 @@
       <button class="chip chip-sm" onclick="selectDailyChip(this,'토')">토</button>
       <button class="chip chip-sm" onclick="selectDailyChip(this,'일')">일</button>
     </div>
+    <div class="form-label">컬러 설정</div>
+    <div class="color-row" id="daily-color-row"></div>
+    <div class="form-label">시간 설정 <span style="color:var(--text-3);font-weight:400;">(선택 · 30분 단위)</span></div>
+    <div class="time-row">
+      <input type="time" class="time-input" id="daily-time-start" step="1800">
+      <span class="time-sep">~</span>
+      <input type="time" class="time-input" id="daily-time-end" step="1800">
+    </div>
     <div class="sheet-btns">
       <button class="btn btn-cancel" onclick="closeSheet('daily')">취소</button>
       <button class="btn btn-save" id="daily-save" disabled onclick="saveItem('daily')">저장</button>
@@ -145,7 +205,7 @@
 
 <!-- Sheet: 월간 추가 -->
 <div class="sheet-overlay" id="sheet-monthly">
-  <div class="sheet">
+  <div class="sheet" style="max-height:85vh;overflow-y:auto;">
     <div class="sheet-handle"></div>
     <div class="sheet-title">월간 목표 추가하기</div>
     <div class="form-label">목표 설정</div>
@@ -170,6 +230,14 @@
       <button class="chip" onclick="selectMonthlyChip(this)">11월</button>
       <button class="chip" onclick="selectMonthlyChip(this)">12월</button>
     </div>
+    <div class="form-label">컬러 설정</div>
+    <div class="color-row" id="monthly-color-row"></div>
+    <div class="form-label">시간 설정 <span style="color:var(--text-3);font-weight:400;">(선택 · 30분 단위)</span></div>
+    <div class="time-row">
+      <input type="time" class="time-input" id="monthly-time-start" step="1800">
+      <span class="time-sep">~</span>
+      <input type="time" class="time-input" id="monthly-time-end" step="1800">
+    </div>
     <div class="sheet-btns">
       <button class="btn btn-cancel" onclick="closeSheet('monthly')">취소</button>
       <button class="btn btn-save" id="monthly-save" disabled onclick="saveItem('monthly')">저장</button>
@@ -179,7 +247,7 @@
 
 <!-- Sheet: 수정 -->
 <div class="sheet-overlay" id="sheet-edit">
-  <div class="sheet">
+  <div class="sheet" style="max-height:85vh;overflow-y:auto;">
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="edit-title">목표 수정하기</div>
     <div class="form-label">목표 설정</div>
@@ -189,6 +257,14 @@
     </div>
     <div class="form-label">루틴 설정</div>
     <div class="chip-row" id="edit-chips"></div>
+    <div class="form-label">컬러 설정</div>
+    <div class="color-row" id="edit-color-row"></div>
+    <div class="form-label">시간 설정 <span style="color:var(--text-3);font-weight:400;">(선택 · 30분 단위)</span></div>
+    <div class="time-row">
+      <input type="time" class="time-input" id="edit-time-start" step="1800">
+      <span class="time-sep">~</span>
+      <input type="time" class="time-input" id="edit-time-end" step="1800">
+    </div>
     <div class="sheet-btns">
       <button class="btn btn-cancel" onclick="closeSheet('edit')">취소</button>
       <button class="btn btn-save" onclick="saveEdit()">저장</button>
@@ -197,33 +273,161 @@
 </div>
 
 <script>
-const DAYS = ['일','월','화','수','목','금','토'];
-const today = new Date();
+const DAYS   = ['일','월','화','수','목','금','토'];
+const COLORS = ['#FF8C00','#30D158','#0A84FF','#BF5AF2','#FF375F','#FFD60A','#5E5CE6','#64D2FF','#FF6B35','#AC8E68'];
+const today    = new Date();
 const todayKey = `${today.getFullYear()}-${today.getMonth()+1}-${today.getDate()}`;
 const monthKey = `${today.getFullYear()}-${today.getMonth()+1}`;
 
 let currentTab = 'daily';
-let dailySelectedChips = [];
+let dailySelectedChips  = [];
 let monthlySelectedChip = null;
-let editingId = null;
-let editingType = null;
-let allItems = { daily: [], monthly: [] };
+let editingId = null, editingType = null;
+let allItems  = { daily: [], monthly: [] };
 let allChecks = { daily: [], monthly: [] };
+let dailySelectedColor   = COLORS[0];
+let monthlySelectedColor = COLORS[0];
+let editSelectedColor    = COLORS[0];
 
-// ── 날짜 표시 ──────────────────────────────────────
 document.getElementById('daily-date').textContent =
   `${today.getMonth()+1}월 ${today.getDate()}일, ${DAYS[today.getDay()]}요일`;
 document.getElementById('monthly-date').textContent =
   `${today.getMonth()+1}월, ${today.getFullYear()}년`;
+
+// ── 컬러 피커 (시트용) ─────────────────────────────
+function initColorRow(id, defaultColor, setter) {
+  const el = document.getElementById(id);
+  el.innerHTML = COLORS.map(c =>
+    `<div class="color-swatch ${c===defaultColor?'selected':''}" style="background:${c}" data-color="${c}"></div>`
+  ).join('');
+  el.addEventListener('click', e => {
+    const s = e.target.closest('.color-swatch');
+    if (!s) return;
+    el.querySelectorAll('.color-swatch').forEach(x => x.classList.remove('selected'));
+    s.classList.add('selected');
+    setter(s.dataset.color);
+  });
+}
+function setColorRow(id, color) {
+  document.querySelectorAll(`#${id} .color-swatch`).forEach(s =>
+    s.classList.toggle('selected', s.dataset.color === color)
+  );
+}
+initColorRow('daily-color-row',   COLORS[0], c => { dailySelectedColor   = c; });
+initColorRow('monthly-color-row', COLORS[0], c => { monthlySelectedColor = c; });
+initColorRow('edit-color-row',    COLORS[0], c => { editSelectedColor    = c; });
+
+// ── 인라인 컬러 피커 (리스트 dot 클릭용) ─────────────
+const colorPopup = document.getElementById('color-picker-popup');
+colorPopup.innerHTML = COLORS.map(c =>
+  `<div class="color-swatch" style="background:${c}" data-color="${c}"></div>`
+).join('');
+colorPopup.addEventListener('click', async e => {
+  const s = e.target.closest('.color-swatch');
+  if (!s) return;
+  const color  = s.dataset.color;
+  const itemId = colorPopup._itemId;
+  const type   = colorPopup._type;
+  colorPopup.classList.remove('open');
+  await sb.patch(`/items?id=eq.${itemId}`, { color });
+  const item = allItems[type]?.find(i => i.id === itemId);
+  if (item) item.color = color;
+  renderList(type);
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('.color-picker-popup') && !e.target.closest('.item-color-dot'))
+    colorPopup.classList.remove('open');
+});
+
+function openColorPicker(dotEl, itemId, type, currentColor, event) {
+  event.stopPropagation();
+  // 현재 색상 선택 표시
+  colorPopup.querySelectorAll('.color-swatch').forEach(s =>
+    s.classList.toggle('selected', s.dataset.color === currentColor)
+  );
+  // 위치 계산
+  const rect = dotEl.getBoundingClientRect();
+  const pw = 196;
+  let top  = rect.bottom + 8;
+  let left = rect.left - 90;
+  left = Math.max(8, Math.min(window.innerWidth - pw - 8, left));
+  // 아래 공간 부족하면 위로
+  if (top + 60 > window.innerHeight) top = rect.top - 68;
+  colorPopup.style.top  = top + 'px';
+  colorPopup.style.left = left + 'px';
+  colorPopup._itemId = itemId;
+  colorPopup._type   = type;
+  colorPopup.classList.add('open');
+}
 
 // ── 탭 전환 ──────────────────────────────────────
 function switchTab(tab) {
   currentTab = tab;
   document.getElementById('tab-daily').classList.toggle('active', tab==='daily');
   document.getElementById('tab-monthly').classList.toggle('active', tab==='monthly');
-  document.getElementById('content-daily').style.display = tab==='daily' ? 'block' : 'none';
+  document.getElementById('content-daily').style.display   = tab==='daily'   ? 'block' : 'none';
   document.getElementById('content-monthly').style.display = tab==='monthly' ? 'block' : 'none';
 }
+
+// ── 시간 → 각도 (0°=12시, 시계방향) ──────────────
+function timeToAngle(t) {
+  if (!t) return null;
+  const [h, m] = t.split(':').map(Number);
+  return ((h % 12) * 60 + m) / 720 * 360;
+}
+
+// ── 시계 세그먼트 렌더링 ────────────────────────────
+function renderClockSegments(type) {
+  const items = getVisibleItems(type);
+  const seg   = document.getElementById(type + '-clock-segments');
+  const ticks = document.getElementById(type + '-clock-ticks');
+  const cx = 80, cy = 80, r = 67;
+  const circ = 2 * Math.PI * r;
+
+  // 시간 눈금
+  let tickHtml = '';
+  for (let i = 0; i < 12; i++) {
+    const rad = (i / 12 * 360 - 90) * Math.PI / 180;
+    const x1 = (cx + 59 * Math.cos(rad)).toFixed(2);
+    const y1 = (cy + 59 * Math.sin(rad)).toFixed(2);
+    const x2 = (cx + 53 * Math.cos(rad)).toFixed(2);
+    const y2 = (cy + 53 * Math.sin(rad)).toFixed(2);
+    tickHtml += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#3A3A3C" stroke-width="1.5" stroke-linecap="round"/>`;
+  }
+  ticks.innerHTML = tickHtml;
+
+  // 컬러 세그먼트
+  let segHtml = '';
+  items.forEach(item => {
+    if (!item.time_start || !item.time_end) return;
+    const sa = timeToAngle(item.time_start);
+    const ea = timeToAngle(item.time_end);
+    let arc = ea - sa;
+    if (arc <= 0) arc += 360;
+    if (arc > 360) arc = 360;
+    const arcLen = (circ * arc / 360).toFixed(2);
+    const gapLen = (circ - circ * arc / 360).toFixed(2);
+    const offset = -(circ * sa / 360).toFixed(2);
+    segHtml += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${item.color||'#636366'}" stroke-width="10" stroke-dasharray="${arcLen} ${gapLen}" stroke-dashoffset="${offset}" transform="rotate(-90 ${cx} ${cy})" opacity="0.9"/>`;
+  });
+  seg.innerHTML = segHtml;
+}
+
+// ── 시계 바늘 (100ms 갱신) ────────────────────────
+function updateClockHands() {
+  const now = new Date();
+  const h = now.getHours() % 12, m = now.getMinutes(), s = now.getSeconds();
+  const hourAngle   = ((h * 60 + m) / 720  * 360).toFixed(2);
+  const minuteAngle = ((m * 60 + s) / 3600 * 360).toFixed(2);
+  const secondAngle = (s / 60 * 360).toFixed(2);
+  ['daily','monthly'].forEach(t => {
+    document.getElementById(t+'-hand-hour')  ?.setAttribute('transform', `rotate(${hourAngle},80,80)`);
+    document.getElementById(t+'-hand-minute')?.setAttribute('transform', `rotate(${minuteAngle},80,80)`);
+    document.getElementById(t+'-hand-second')?.setAttribute('transform', `rotate(${secondAngle},80,80)`);
+  });
+}
+updateClockHands();
+setInterval(updateClockHands, 100);
 
 // ── 오늘 보여야 할 항목 필터 ──────────────────────
 function getVisibleItems(type) {
@@ -231,28 +435,20 @@ function getVisibleItems(type) {
   const dow = today.getDay();
   const dowMap = {'월':1,'화':2,'수':3,'목':4,'금':5,'토':6,'일':0};
   const thisMonth = today.getMonth() + 1;
-  const thisYear = today.getFullYear();
-
+  const thisYear  = today.getFullYear();
   if (type === 'daily') {
     return items.filter(item => {
       const r = item.routine;
       if (r === '없음') return item.created_date === todayKey;
       if (r === '매일') return true;
       if (dowMap[r] !== undefined) return dow === dowMap[r];
-      // 복수 요일 (JSON 배열로 저장된 경우)
-      try {
-        const arr = JSON.parse(r);
-        if (Array.isArray(arr)) return arr.some(v => dowMap[v] !== undefined && dow === dowMap[v]);
-      } catch(e) {}
+      try { const arr = JSON.parse(r); if (Array.isArray(arr)) return arr.some(v => dowMap[v]!==undefined && dow===dowMap[v]); } catch(e) {}
       return false;
     });
   } else {
     return items.filter(item => {
       const r = item.routine;
-      if (r === '없음') {
-        const [y,m] = (item.created_date||'').split('-');
-        return parseInt(y)===thisYear && parseInt(m)===thisMonth;
-      }
+      if (r === '없음') { const [y,m] = (item.created_date||'').split('-'); return parseInt(y)===thisYear && parseInt(m)===thisMonth; }
       if (r === '매월') return true;
       return parseInt(r) === thisMonth;
     });
@@ -261,25 +457,35 @@ function getVisibleItems(type) {
 
 // ── 렌더링 ──────────────────────────────────────
 function renderList(type) {
-  const items = getVisibleItems(type);
+  const items  = getVisibleItems(type);
   const checks = allChecks[type] || [];
   const listEl = document.getElementById(type + '-list');
+  const delBtn = document.getElementById(type + '-del-btn');
   const addBtn = document.querySelector(`#content-${type} .sec-action`);
 
   if (items.length === 0) {
     if (addBtn) addBtn.style.display = 'none';
+    if (delBtn) delBtn.style.display = 'none';
     listEl.innerHTML = `<div class="empty-state" onclick="openSheet('${type}')">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       목표를 추가해보세요
     </div>`;
   } else {
     if (addBtn) addBtn.style.display = '';
+    if (delBtn) delBtn.style.display = '';
     listEl.innerHTML = items.map(item => {
-      const done = checks.includes(item.id);
+      const done  = checks.includes(item.id);
+      const color = item.color || '#636366';
+      const timeLabel = (item.time_start && item.time_end)
+        ? `<span class="todo-time">${item.time_start} ~ ${item.time_end}</span>` : '';
       return `
       <div class="todo-item" data-id="${item.id}" data-type="${type}">
+        <div class="item-color-dot" style="background:${color}" onclick="openColorPicker(this,'${item.id}','${type}','${color}',event)"></div>
         <div class="checkbox ${done?'checked':''}" onclick="toggleCheck(this)"></div>
-        <span class="todo-text ${done?'done':''}">${item.text}</span>
+        <div class="todo-content">
+          <span class="todo-text ${done?'done':''}">${item.text}</span>
+          ${timeLabel}
+        </div>
         <div class="more-btn" onclick="toggleCtx(this)">
           <div class="more-dots"><span></span><span></span><span></span></div>
           <div class="ctx-menu">
@@ -294,22 +500,20 @@ function renderList(type) {
       </div>`;
     }).join('');
   }
-  updateRing(type);
+  updateProgress(type);
+  renderClockSegments(type);
 }
 
-function updateRing(type) {
-  const items = getVisibleItems(type);
+function updateProgress(type) {
+  const items  = getVisibleItems(type);
   const checks = allChecks[type] || [];
-  const total = items.length;
-  const done = items.filter(i => checks.includes(i.id)).length;
-  const pct = total === 0 ? 0 : Math.round(done / total * 100);
-  const offset = 440 - (pct / 100 * 440);
-
-  document.getElementById(type+'-pct').innerHTML = `${pct}<span>%</span>`;
-  document.getElementById(type+'-done').textContent = done;
+  const total  = items.length;
+  const done   = items.filter(i => checks.includes(i.id)).length;
+  const pct    = total === 0 ? 0 : Math.round(done / total * 100);
+  document.getElementById(type+'-pct').innerHTML   = `${pct}<span>%</span>`;
+  document.getElementById(type+'-done').textContent  = done;
   document.getElementById(type+'-total').textContent = total;
-  document.getElementById(type+'-ring').style.strokeDashoffset = offset;
-
+  document.getElementById(type+'-progress').style.width = pct + '%';
   const chip = document.getElementById(type+'-streak');
   chip.style.display = total === 0 ? 'none' : 'flex';
   chip.textContent = pct===100 ? '🎉 모두 완료!' : pct>=50 ? '🔥 잘 하고 있어요!' : '💪 조금만 더!';
@@ -322,7 +526,7 @@ async function loadData(type) {
     sb.get(`/items?type=eq.${type}&order=created_at.asc`),
     sb.get(`/checks?check_date=eq.${checkDate}&select=item_id`)
   ]);
-  allItems[type] = Array.isArray(items) ? items : [];
+  allItems[type]  = Array.isArray(items)  ? items  : [];
   allChecks[type] = Array.isArray(checks) ? checks.map(c => c.item_id) : [];
   renderList(type);
 }
@@ -330,32 +534,36 @@ async function loadData(type) {
 // ── 체크 토글 ──────────────────────────────────
 async function toggleCheck(el) {
   const item = el.closest('.todo-item');
-  const id = item.dataset.id;
-  const type = item.dataset.type;
+  const id   = item.dataset.id, type = item.dataset.type;
   const checkDate = type === 'daily' ? todayKey : monthKey;
   const checks = allChecks[type];
   const idx = checks.indexOf(id);
-
-  if (idx === -1) {
-    await sb.post('/checks', { item_id: id, check_date: checkDate });
-    checks.push(id);
-  } else {
-    await sb.del(`/checks?item_id=eq.${id}&check_date=eq.${checkDate}`);
-    checks.splice(idx, 1);
-  }
+  if (idx === -1) { await sb.post('/checks', { item_id: id, check_date: checkDate }); checks.push(id); }
+  else            { await sb.del(`/checks?item_id=eq.${id}&check_date=eq.${checkDate}`); checks.splice(idx,1); }
   renderList(type);
 }
 
-// ── 삭제 ──────────────────────────────────────
+// ── 단일 삭제 ──────────────────────────────────
 async function deleteItem(ctxItem) {
   const todoItem = ctxItem.closest('.todo-item');
-  const id = todoItem.dataset.id;
-  const type = todoItem.dataset.type;
+  const id = todoItem.dataset.id, type = todoItem.dataset.type;
   await sb.del(`/items?id=eq.${id}`);
-  allItems[type] = allItems[type].filter(i => i.id !== id);
+  allItems[type]  = allItems[type].filter(i => i.id !== id);
   allChecks[type] = allChecks[type].filter(c => c !== id);
   renderList(type);
   ctxItem.closest('.ctx-menu').classList.remove('open');
+}
+
+// ── 전체 삭제 ──────────────────────────────────
+async function deleteAllItems(type) {
+  const items = getVisibleItems(type);
+  if (!items.length) return;
+  if (!confirm(`목록의 항목 ${items.length}개를 모두 삭제할까요?`)) return;
+  await Promise.all(items.map(i => sb.del(`/items?id=eq.${i.id}`)));
+  const ids = new Set(items.map(i => i.id));
+  allItems[type]  = allItems[type].filter(i => !ids.has(i.id));
+  allChecks[type] = allChecks[type].filter(c => !ids.has(c));
+  renderList(type);
 }
 
 // ── 컨텍스트 메뉴 ──────────────────────────────
@@ -371,7 +579,16 @@ document.addEventListener('click', e => {
 });
 
 // ── 시트 ──────────────────────────────────────
-function openSheet(type) { document.getElementById('sheet-'+type).classList.add('open'); }
+function openSheet(type) {
+  if (type === 'daily' || type === 'monthly') {
+    const def = COLORS[0];
+    if (type === 'daily') dailySelectedColor = def; else monthlySelectedColor = def;
+    setColorRow(type + '-color-row', def);
+    document.getElementById(type+'-time-start').value = '';
+    document.getElementById(type+'-time-end').value   = '';
+  }
+  document.getElementById('sheet-'+type).classList.add('open');
+}
 function closeSheet(type) {
   document.getElementById('sheet-'+type).classList.remove('open');
   if (type === 'daily') {
@@ -399,10 +616,9 @@ function selectDailyChip(chip, val) {
     chip.classList.add('selected');
     dailySelectedChips = [val];
   } else {
-    chips[0].classList.remove('selected');
-    chips[1].classList.remove('selected');
+    chips[0].classList.remove('selected'); chips[1].classList.remove('selected');
     chip.classList.toggle('selected');
-    dailySelectedChips = [...chips].filter((c,i)=>i>1&&c.classList.contains('selected')).map(c=>c.textContent);
+    dailySelectedChips = [...chips].filter((c,i) => i>1 && c.classList.contains('selected')).map(c => c.textContent);
   }
   checkSave('daily');
 }
@@ -425,14 +641,17 @@ function clearInput(type) { document.getElementById(type+'-input').value=''; che
 
 // ── 저장 ──────────────────────────────────────
 async function saveItem(type) {
-  const text = document.getElementById(type+'-input').value.trim();
+  const text    = document.getElementById(type+'-input').value.trim();
   const routine = type === 'daily'
     ? (dailySelectedChips.length===1 ? dailySelectedChips[0] : JSON.stringify(dailySelectedChips))
     : monthlySelectedChip;
+  const color      = type === 'daily' ? dailySelectedColor : monthlySelectedColor;
+  const time_start = document.getElementById(type+'-time-start').value || null;
+  const time_end   = document.getElementById(type+'-time-end').value   || null;
   const id = Date.now().toString();
-  const res = await sb.post('/items', { id, type, text, routine, created_date: todayKey });
-  if (Array.isArray(res) && res[0]) allItems[type].push(res[0]);
-  else allItems[type].push({ id, type, text, routine, created_date: todayKey });
+  const res = await sb.post('/items', { id, type, text, routine, created_date: todayKey, color, time_start, time_end });
+  const newItem = (Array.isArray(res) && res[0]) ? res[0] : { id, type, text, routine, created_date: todayKey, color, time_start, time_end };
+  allItems[type].push(newItem);
   closeSheet(type);
   renderList(type);
 }
@@ -440,24 +659,28 @@ async function saveItem(type) {
 // ── 수정 ──────────────────────────────────────
 function openEditSheet(ctxItem) {
   const todoItem = ctxItem.closest('.todo-item');
-  editingId = todoItem.dataset.id;
+  editingId   = todoItem.dataset.id;
   editingType = todoItem.dataset.type;
   ctxItem.closest('.ctx-menu').classList.remove('open');
-  const item = allItems[editingType].find(i=>i.id===editingId);
+  const item = allItems[editingType].find(i => i.id === editingId);
   if (!item) return;
-  document.getElementById('edit-title').textContent = editingType==='daily'?'일간 목표 수정하기':'월간 목표 수정하기';
-  document.getElementById('edit-input').value = item.text;
+  document.getElementById('edit-title').textContent    = editingType==='daily' ? '일간 목표 수정하기' : '월간 목표 수정하기';
+  document.getElementById('edit-input').value          = item.text;
+  document.getElementById('edit-time-start').value     = item.time_start || '';
+  document.getElementById('edit-time-end').value       = item.time_end   || '';
+  editSelectedColor = item.color || COLORS[0];
+  setColorRow('edit-color-row', editSelectedColor);
   const isSelected = v => {
-    try { const arr=JSON.parse(item.routine); if(Array.isArray(arr)) return arr.includes(v); } catch(e){}
-    return item.routine===v;
+    try { const arr = JSON.parse(item.routine); if (Array.isArray(arr)) return arr.includes(v); } catch(e) {}
+    return item.routine === v;
   };
   const chipsEl = document.getElementById('edit-chips');
-  if (editingType==='daily') {
-    chipsEl.innerHTML = ['없음','매일','월','화','수','목','금','토','일'].map(v=>
+  if (editingType === 'daily') {
+    chipsEl.innerHTML = ['없음','매일','월','화','수','목','금','토','일'].map(v =>
       `<button class="chip ${v.length===1?'chip-sm':''} ${isSelected(v)?'selected':''}" onclick="selEditChip(this,'${v}','daily')">${v}</button>`
     ).join('');
   } else {
-    chipsEl.innerHTML = ['없음','매월','1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'].map(v=>
+    chipsEl.innerHTML = ['없음','매월','1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'].map(v =>
       `<button class="chip ${isSelected(v)?'selected':''}" onclick="selEditChip(this,'${v}','monthly')">${v}</button>`
     ).join('');
   }
@@ -465,23 +688,25 @@ function openEditSheet(ctxItem) {
 }
 function selEditChip(chip, val, type) {
   const chips = chip.closest('.chip-row').querySelectorAll('.chip');
-  if (type==='daily') {
-    if (['없음','매일'].includes(val)) { chips.forEach(c=>c.classList.remove('selected')); chip.classList.add('selected'); }
+  if (type === 'daily') {
+    if (['없음','매일'].includes(val)) { chips.forEach(c => c.classList.remove('selected')); chip.classList.add('selected'); }
     else { chips[0].classList.remove('selected'); chips[1].classList.remove('selected'); chip.classList.toggle('selected'); }
-  } else { chips.forEach(c=>c.classList.remove('selected')); chip.classList.add('selected'); }
+  } else { chips.forEach(c => c.classList.remove('selected')); chip.classList.add('selected'); }
 }
 async function saveEdit() {
   const text = document.getElementById('edit-input').value.trim();
   if (!text) return;
   const chips = [...document.querySelectorAll('#edit-chips .chip.selected')];
   let routine;
-  if (editingType==='daily') {
-    const vals = chips.map(c=>c.textContent);
-    routine = vals.length===1 ? vals[0] : JSON.stringify(vals);
-  } else { routine = chips[0]?.textContent||'없음'; }
-  await sb.patch(`/items?id=eq.${editingId}`, { text, routine });
-  const idx = allItems[editingType].findIndex(i=>i.id===editingId);
-  if (idx!==-1) { allItems[editingType][idx].text=text; allItems[editingType][idx].routine=routine; }
+  if (editingType === 'daily') {
+    const vals = chips.map(c => c.textContent);
+    routine = vals.length === 1 ? vals[0] : JSON.stringify(vals);
+  } else { routine = chips[0]?.textContent || '없음'; }
+  const time_start = document.getElementById('edit-time-start').value || null;
+  const time_end   = document.getElementById('edit-time-end').value   || null;
+  await sb.patch(`/items?id=eq.${editingId}`, { text, routine, color: editSelectedColor, time_start, time_end });
+  const idx = allItems[editingType].findIndex(i => i.id === editingId);
+  if (idx !== -1) Object.assign(allItems[editingType][idx], { text, routine, color: editSelectedColor, time_start, time_end });
   closeSheet('edit');
   renderList(editingType);
 }
@@ -489,7 +714,6 @@ async function saveEdit() {
 // ── FAB ──────────────────────────────────────
 document.getElementById('fab-btn').addEventListener('click', () => openSheet(currentTab));
 
-// ── 초기 로드 ────────────────────────────────
 loadData('daily');
 loadData('monthly');
 </script>
