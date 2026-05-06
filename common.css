@@ -374,13 +374,19 @@ body {
 .time-row {
   display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
 }
-.time-input {
-  flex: 1; background: var(--bg3); border: 1px solid var(--border);
-  border-radius: var(--radius-md); padding: 10px 12px;
-  color: var(--text-1); font-size: 14px; font-family: inherit; outline: none;
-  transition: border-color 0.2s; color-scheme: dark;
+.time-pick {
+  flex: 1; display: flex; align-items: center; gap: 4px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 8px 10px;
 }
-.time-input:focus { border-color: var(--orange); }
+.time-sel {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text-1); font-size: 14px; font-family: inherit;
+  -webkit-appearance: none; appearance: none; cursor: pointer;
+  text-align: center;
+}
+.time-sel option { background: var(--bg2); color: var(--text-1); }
+.time-colon { color: var(--text-3); font-size: 14px; flex-shrink: 0; }
 .time-sep { color: var(--text-3); font-size: 14px; flex-shrink: 0; }
 
 /* Routine chips */

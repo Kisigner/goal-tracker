@@ -192,9 +192,9 @@
     <div class="color-row" id="daily-color-row"></div>
     <div class="form-label">시간 설정 <span style="color:var(--text-3);font-weight:400;">(선택 · 30분 단위)</span></div>
     <div class="time-row">
-      <input type="time" class="time-input" id="daily-time-start" step="1800">
+      <div class="time-pick" id="daily-time-start"></div>
       <span class="time-sep">~</span>
-      <input type="time" class="time-input" id="daily-time-end" step="1800">
+      <div class="time-pick" id="daily-time-end"></div>
     </div>
     <div class="sheet-btns">
       <button class="btn btn-cancel" onclick="closeSheet('daily')">취소</button>
@@ -234,9 +234,9 @@
     <div class="color-row" id="monthly-color-row"></div>
     <div class="form-label">시간 설정 <span style="color:var(--text-3);font-weight:400;">(선택 · 30분 단위)</span></div>
     <div class="time-row">
-      <input type="time" class="time-input" id="monthly-time-start" step="1800">
+      <div class="time-pick" id="monthly-time-start"></div>
       <span class="time-sep">~</span>
-      <input type="time" class="time-input" id="monthly-time-end" step="1800">
+      <div class="time-pick" id="monthly-time-end"></div>
     </div>
     <div class="sheet-btns">
       <button class="btn btn-cancel" onclick="closeSheet('monthly')">취소</button>
@@ -261,9 +261,9 @@
     <div class="color-row" id="edit-color-row"></div>
     <div class="form-label">시간 설정 <span style="color:var(--text-3);font-weight:400;">(선택 · 30분 단위)</span></div>
     <div class="time-row">
-      <input type="time" class="time-input" id="edit-time-start" step="1800">
+      <div class="time-pick" id="edit-time-start"></div>
       <span class="time-sep">~</span>
-      <input type="time" class="time-input" id="edit-time-end" step="1800">
+      <div class="time-pick" id="edit-time-end"></div>
     </div>
     <div class="sheet-btns">
       <button class="btn btn-cancel" onclick="closeSheet('edit')">취소</button>
@@ -273,6 +273,44 @@
 </div>
 
 <script>
+// ── 24시간 시간 피커 헬퍼 ────────────────────────────
+const TIME_PICK_IDS = ['daily-time-start','daily-time-end','monthly-time-start','monthly-time-end','edit-time-start','edit-time-end'];
+
+function buildTimePickers() {
+  const hourOpts = '<option value="">시</option>' +
+    Array.from({length:24}, (_,i) => {
+      const v = String(i).padStart(2,'0');
+      return `<option value="${v}">${i}</option>`;
+    }).join('');
+  const minOpts = '<option value="">분</option><option value="00">00</option><option value="30">30</option>';
+  TIME_PICK_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = `<select class="time-sel" data-part="h">${hourOpts}</select><span class="time-colon">:</span><select class="time-sel" data-part="m">${minOpts}</select>`;
+  });
+}
+
+function getTimeValue(id) {
+  const el = document.getElementById(id);
+  if (!el) return '';
+  const h = el.querySelector('[data-part="h"]').value;
+  const m = el.querySelector('[data-part="m"]').value;
+  return (h !== '' && m !== '') ? `${h}:${m}` : '';
+}
+
+function setTimeValue(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (!val) {
+    el.querySelector('[data-part="h"]').value = '';
+    el.querySelector('[data-part="m"]').value = '';
+  } else {
+    const [h, m] = val.split(':');
+    el.querySelector('[data-part="h"]').value = h;
+    el.querySelector('[data-part="m"]').value = m.slice(0,2) === '30' ? '30' : '00';
+  }
+}
+
 const DAYS   = ['일','월','화','수','목','금','토'];
 const COLORS = ['#FF8C00','#30D158','#0A84FF','#BF5AF2','#FF375F','#FFD60A','#5E5CE6','#64D2FF','#FF6B35','#AC8E68'];
 const today    = new Date();
@@ -584,8 +622,8 @@ function openSheet(type) {
     const def = COLORS[0];
     if (type === 'daily') dailySelectedColor = def; else monthlySelectedColor = def;
     setColorRow(type + '-color-row', def);
-    document.getElementById(type+'-time-start').value = '';
-    document.getElementById(type+'-time-end').value   = '';
+    setTimeValue(type+'-time-start', '');
+    setTimeValue(type+'-time-end',   '');
   }
   document.getElementById('sheet-'+type).classList.add('open');
 }
@@ -646,8 +684,8 @@ async function saveItem(type) {
     ? (dailySelectedChips.length===1 ? dailySelectedChips[0] : JSON.stringify(dailySelectedChips))
     : monthlySelectedChip;
   const color      = type === 'daily' ? dailySelectedColor : monthlySelectedColor;
-  const time_start = document.getElementById(type+'-time-start').value || null;
-  const time_end   = document.getElementById(type+'-time-end').value   || null;
+  const time_start = getTimeValue(type+'-time-start') || null;
+  const time_end   = getTimeValue(type+'-time-end')   || null;
   const id = Date.now().toString();
   const res = await sb.post('/items', { id, type, text, routine, created_date: todayKey, color, time_start, time_end });
   const newItem = (Array.isArray(res) && res[0]) ? res[0] : { id, type, text, routine, created_date: todayKey, color, time_start, time_end };
@@ -666,8 +704,8 @@ function openEditSheet(ctxItem) {
   if (!item) return;
   document.getElementById('edit-title').textContent    = editingType==='daily' ? '일간 목표 수정하기' : '월간 목표 수정하기';
   document.getElementById('edit-input').value          = item.text;
-  document.getElementById('edit-time-start').value     = item.time_start || '';
-  document.getElementById('edit-time-end').value       = item.time_end   || '';
+  setTimeValue('edit-time-start', item.time_start || '');
+  setTimeValue('edit-time-end',   item.time_end   || '');
   editSelectedColor = item.color || COLORS[0];
   setColorRow('edit-color-row', editSelectedColor);
   const isSelected = v => {
@@ -702,8 +740,8 @@ async function saveEdit() {
     const vals = chips.map(c => c.textContent);
     routine = vals.length === 1 ? vals[0] : JSON.stringify(vals);
   } else { routine = chips[0]?.textContent || '없음'; }
-  const time_start = document.getElementById('edit-time-start').value || null;
-  const time_end   = document.getElementById('edit-time-end').value   || null;
+  const time_start = getTimeValue('edit-time-start') || null;
+  const time_end   = getTimeValue('edit-time-end')   || null;
   await sb.patch(`/items?id=eq.${editingId}`, { text, routine, color: editSelectedColor, time_start, time_end });
   const idx = allItems[editingType].findIndex(i => i.id === editingId);
   if (idx !== -1) Object.assign(allItems[editingType][idx], { text, routine, color: editSelectedColor, time_start, time_end });
@@ -714,6 +752,7 @@ async function saveEdit() {
 // ── FAB ──────────────────────────────────────
 document.getElementById('fab-btn').addEventListener('click', () => openSheet(currentTab));
 
+buildTimePickers();
 loadData('daily');
 loadData('monthly');
 </script>
